@@ -1,0 +1,7 @@
+For ($i=1; $i -lt 500000; $i++)  {
+    $wmi = Get-WmiObject -Class Win32_NetworkAdapter -filter "Name LIKE '%Ethernet%'"
+    $wmi.disable()
+    Start-Sleep -s 1
+    $wmi.enable()
+    Start-Sleep -s 10
+}
