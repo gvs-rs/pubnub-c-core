@@ -30,12 +30,12 @@ static enum pubnub_res inflate_total_to_context_buffer(pubnub_t*      pb,
             return PNR_OK;
         }
         else {
-            PUBNUB_LOG_ERROR("Decompressed length[%zu] is smaller than the "
-                             "'unpacked_size' value[%zu]!\n"
+            PUBNUB_LOG_ERROR("Decompressed length[%u] is smaller than the "
+                             "'unpacked_size' value[%u]!\n"
                              "(Unpacked:['%.*s'])\n",
-                             dst_buf_size,
-                             out_len,
-                             (long)dst_buf_size,
+                             (unsigned)dst_buf_size,
+                             (unsigned)out_len,
+                             (int)dst_buf_size,
                              pb->core.decomp_http_reply);
         }
         break;
@@ -97,7 +97,7 @@ static enum pubnub_res inflate_total(pubnub_t*      pb,
         char* newbuf = (char*)realloc(pb->core.decomp_http_reply, out_len + 1);
         if (NULL == newbuf) {
             PUBNUB_LOG_ERROR("Failed to reallocate decompression buffer!\n"
-                             "Out length:%zu\n",
+                             "Out length:%lu\n",
                              out_len);
             return PNR_REPLY_TOO_BIG;
         }
@@ -106,7 +106,7 @@ static enum pubnub_res inflate_total(pubnub_t*      pb,
 #else
     if (out_len >= sizeof pb->core.decomp_http_reply) {
         PUBNUB_LOG_ERROR("Decompression buffer too small!\n"
-                         "Size of buffer:%zu - Out length:%zu\n",
+                         "Size of buffer:%lu - Out length:%lu\n",
                          sizeof pb->core.decomp_http_reply,
                          out_len);
         return PNR_REPLY_TOO_BIG;
@@ -151,10 +151,10 @@ enum pubnub_res pbgzip_decompress(pubnub_t* pb)
     unpacked_size |= (uint32_t)data[size - 3] << 8;
     unpacked_size |= (uint32_t)data[size - 2] << 16;
     unpacked_size |= (uint32_t)data[size - 1] << 24;
-    PUBNUB_LOG_TRACE("pbgzip_decompress(pb=%p)-Length before:%zu and after "
+    PUBNUB_LOG_TRACE("pbgzip_decompress(pb=%p)-Length before:%lu and after "
                      "decompresion:%lu\n",
                      pb,
-                     size,
+                     (unsigned long)size,
                      (unsigned long)unpacked_size);
     size -= (GZIP_HEADER_LENGTH_BYTES + GZIP_FOOTER_LENGTH_BYTES);
 
