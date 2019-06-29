@@ -3,6 +3,7 @@
 
 #include <QTextStream>
 
+
 class pubnub_qt_fan_in : public QObject {
     Q_OBJECT
   
@@ -25,6 +26,11 @@ private slots:
             
 private:
     bool reconnect(pubnub_qt& pb, char const *from, char const *to);
-    pubnub_qt d_pb_1, d_pb_2, d_pb_3;
+    void pb3_subscribe();
+    pubnub_qt d_pb_1;
+    pubnub_qt d_pb_2;
+    pubnub_qt d_pb_3;
+    bool d_pb1_publish_done = false;
+    bool d_pb2_publish_done = false;
     QTextStream d_out;
 };

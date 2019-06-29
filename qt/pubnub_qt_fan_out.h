@@ -23,6 +23,19 @@ private slots:
     void onPublish_pb1(pubnub_res result);
 
 private:
-    pubnub_qt d_pb_1, d_pb_2, d_pb_3;
+    void pb1_publish_if_ready();
+    void subscribe_ctx(pubnub_qt& pb);
+    void print_messages(pubnub_qt& pb);
+    void exit_when_done();
+    pubnub_qt d_pb_1;
+    pubnub_qt d_pb_2;
+    pubnub_qt d_pb_3;
+    bool d_pb1_publish_done = false;
+    bool d_pb2_connect_done = false;
+    bool d_pb3_connect_done = false;
+    bool d_pb2_subscribe_done = false;
+    bool d_pb3_subscribe_done = false;
     QTextStream d_out;
 };
+
+
