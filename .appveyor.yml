@@ -23,6 +23,10 @@ build_script:
     qmake pubnub.pro CONFIG+=release DESTDIR=. &&
     mingw32-make &&
     qmake pubnub_gui.pro CONFIG+=release DESTDIR=. &&
+    mingw32-make &&
+    qmake pubnub_qt_fan_in.pro CONFIG+=release DESTDIR=. &&
+    mingw32-make &&
+    qmake pubnub_qt_fan_out.pro CONFIG+=release DESTDIR=. &&
     mingw32-make
   - cd ..
 
