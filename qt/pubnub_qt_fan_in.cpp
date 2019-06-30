@@ -18,66 +18,66 @@ bool pubnub_qt_fan_in::reconnect(pubnub_qt& pb, char const *from, char const *to
 }
 
 
-void pubnub_qt_fan_in::onPublish_pb1(pubnub_res result)
+void pubnub_qt_fan_in::onPublish_1(pubnub_res result)
 {
-    d_out << "onPublish_pb1! Result: '" << pubnub_res_2_string(result)
-          << "', Response: " << d_pb_1.last_publish_result() << "\n";
-    d_pb1_publish_done = true;
+    d_out << "onPublish_1! Result: '" << pubnub_res_2_string(result)
+          << "', Response: " << d_pb_pub1.last_publish_result() << "\n";
+    d_publish_1_done = true;
 }
 
 
-void pubnub_qt_fan_in::onPublish_pb2(pubnub_res result)
+void pubnub_qt_fan_in::onPublish_2(pubnub_res result)
 {
-    d_out << "onPublish_pb2! Result: '" << pubnub_res_2_string(result)
-          << "', Response: " << d_pb_2.last_publish_result() << "\n";
-    d_pb2_publish_done = true;
+    d_out << "onPublish_2! Result: '" << pubnub_res_2_string(result)
+          << "', Response: " << d_pb_pub2.last_publish_result() << "\n";
+    d_publish_2_done = true;
 }
 
 
-void pubnub_qt_fan_in::pb3_subscribe()
+void pubnub_qt_fan_in::subscribe()
 {
-    pubnub_res result = d_pb_3.subscribe(chann);
+    pubnub_res result = d_pb_sub.subscribe(chann);
     if (result != PNR_STARTED) {
-        d_out << "Subscribe(pb_3) failed, result: '"<< pubnub_res_2_string(result) << "'\n";
+        d_out << "Subscribe failed, result: '"<< pubnub_res_2_string(result) << "'\n";
         QCoreApplication::instance()->quit();
     }
 }
 
 
-void pubnub_qt_fan_in::onSubscribe_pb3(pubnub_res result)
+void pubnub_qt_fan_in::onSubscribe(pubnub_res result)
 {
-    d_out << "onSubscribe_pb3! Result: '" << pubnub_res_2_string(result) << "' Messages: ";
-    QList<QString> msg = d_pb_3.get_all();
+    d_out << "onSubscribe! Result: '" << pubnub_res_2_string(result) << "' Messages: ";
+    QList<QString> msg = d_pb_sub.get_all();
     for (int i = 0; i < msg.size(); ++i) {
         d_out << msg[i].toLatin1().data() << '\n';
     }
-    if (d_pb1_publish_done && d_pb2_publish_done) {
+    if (d_publish_1_done && d_publish_2_done) {
         QCoreApplication::instance()->quit();
     }
-    pb3_subscribe();
+    subscribe();
 }
 
 
-void pubnub_qt_fan_in::onConnect_pb3(pubnub_res result)
+void pubnub_qt_fan_in::onConnect(pubnub_res result)
 {
-    d_out << "onConnect_pb3! Result: '" << pubnub_res_2_string(result) << "'\n";
-    d_pb_1.set_uuid_v4_random();
-    d_pb_2.set_uuid_v4_random();
+    d_out << "onConnect! Result: '" << pubnub_res_2_string(result) << "'\n";
+    d_pb_pub1.set_uuid_v4_random();
+    d_pb_pub2.set_uuid_v4_random();
 
-    connect(&d_pb_1, SIGNAL(outcome(pubnub_res)), this, SLOT(onPublish_pb1(pubnub_res)));
-    connect(&d_pb_2, SIGNAL(outcome(pubnub_res)), this, SLOT(onPublish_pb2(pubnub_res)));
-    reconnect(d_pb_3, SLOT(onConnect_pb3(pubnub_res)), SLOT(onSubscribe_pb3(pubnub_res)));
-    result = d_pb_1.publish(chann, "\"Hello world from Qt - pb_1!\"");
+    connect(&d_pb_pub1, SIGNAL(outcome(pubnub_res)), this, SLOT(onPublish_1(pubnub_res)));
+    connect(&d_pb_pub2, SIGNAL(outcome(pubnub_res)), this, SLOT(onPublish_2(pubnub_res)));
+    reconnect(d_pb_sub, SLOT(onConnect(pubnub_res)), SLOT(onSubscribe(pubnub_res)));
+    result = d_pb_pub1.publish(chann, "\"Hello world from Qt - pb_pub1!\"");
     if (result != PNR_STARTED) {
-        d_out << "Publish(pb_1) failed, result: '"<< pubnub_res_2_string(result) << "'\n";
+        d_out << "Publish_1 failed, result: '"<< pubnub_res_2_string(result) << "'\n";
         QCoreApplication::instance()->quit();
     }
-    result = d_pb_2.publish(chann, "\"Hello world from Qt - pb_2!\"");
+    result = d_pb_pub2.publish(chann, "\"Hello world from Qt - pb_pub2!\"");
     if (result != PNR_STARTED) {
-        d_out << "Publish(pb_2) failed, result: '"<< pubnub_res_2_string(result) << "'\n";
+        d_out << "Publish_2 failed, result: '"<< pubnub_res_2_string(result) << "'\n";
         QCoreApplication::instance()->quit();
     }
-    pb3_subscribe();
+    subscribe();
 }
 
 
@@ -85,10 +85,10 @@ void pubnub_qt_fan_in::execute()
 {
     qDebug() << "execute()";
 
-    d_pb_3.set_uuid_v4_random();
+    d_pb_sub.set_uuid_v4_random();
 
-    connect(&d_pb_3, SIGNAL(outcome(pubnub_res)), this, SLOT(onConnect_pb3(pubnub_res)));
-    pb3_subscribe();
+    connect(&d_pb_sub, SIGNAL(outcome(pubnub_res)), this, SLOT(onConnect(pubnub_res)));
+    subscribe();
 }
 
 
