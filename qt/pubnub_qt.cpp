@@ -298,9 +298,10 @@ pubnub_res pubnub_qt::publish_via_post_with_gzip(QString const&    channel,
 pubnub_res pubnub_qt::signal(QString const& channel, QString const& message)
 {
     QMutexLocker lk(&d_mutex);
+    d_message_to_publish = pack_message_to_gzip(message);
     return startRequest(pbcc_signal_prep(d_context.data(),
                                          channel.toLatin1().data(),
-                                         message.toLatin1().data()),
+                                         d_message_to_publish.data()),
                         PBTT_SIGNAL);
 }
 
