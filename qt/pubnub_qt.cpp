@@ -295,7 +295,7 @@ pubnub_res pubnub_qt::publish_via_post_with_gzip(QString const&    channel,
 }
 
 
-pubnub_res pubnub_qt::signal(QString const& channel, QString const& message)
+pubnub_res pubnub_qt::signal(QString const& channel, QByteArray const& message)
 {
     QMutexLocker lk(&d_mutex);
     d_message_to_publish = pack_message_to_gzip(message);
