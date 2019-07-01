@@ -294,6 +294,17 @@ pubnub_res pubnub_qt::publish_via_post_with_gzip(QString const&    channel,
                         PBTT_PUBLISH);
 }
 
+
+pubnub_res pubnub_qt::signal(QString const& channel, QString const& message)
+{
+    QMutexLocker lk(&d_mutex);
+    return startRequest(pbcc_signal_prep(d_context.data(),
+                                         channel.toLatin1().data(),
+                                         message.toLatin1().data()),
+                        PBTT_SIGNAL);
+}
+
+
 pubnub_res pubnub_qt::subscribe(QString const& channel, QString const& channel_group)
 {
     KEEP_THREAD_SAFE();
