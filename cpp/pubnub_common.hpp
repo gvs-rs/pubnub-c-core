@@ -530,8 +530,7 @@ public:
     }
 
     /// Publishes a @p message on the @p channel with "extendded"
-    /// (full) options. The @p channel can have many channels
-    /// separated by a comma @see pubnub_publish
+    /// (full) options.
     futres publish(std::string const& channel,
                    std::string const& message,
                    publish_options    opt)
@@ -547,6 +546,21 @@ public:
         return doit(pubnub_publish_ex(d_pb, channel.c_str(), d_message_to_publish, opt.data()));
     }
 
+    /// Send a signal @p message on the @p channel.
+    /// @see pubnub_signal
+    futres signal(std::string const& channel, std::string const& message)
+    {
+        if (message.size() + 1 > sizeof d_message_to_publish) {
+            throw std::range_error("string for signal message too long");
+        }
+        lock_guard lck(d_mutex);
+        if (!pubnub_can_start_transaction(d_pb)) {
+            return futres(d_pb, *this, PNR_IN_PROGRESS);
+        }
+        strcpy(d_message_to_publish, message.c_str());
+        return doit(pubnub_signal(d_pb, channel.c_str(), d_message_to_publish));
+    }
+    
 #if PUBNUB_CRYPTO_API
     /// Publishes a @p message on the @p channel encrypted with @p
     /// cipher_key.

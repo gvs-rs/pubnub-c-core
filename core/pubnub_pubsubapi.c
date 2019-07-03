@@ -108,6 +108,38 @@ enum pubnub_res pubnub_publish(pubnub_t* pb, const char* channel, const char* me
 }
 
 
+enum pubnub_res pubnub_signal(pubnub_t* pb, const char* channel, const char* message)
+{
+    enum pubnub_res rslt;
+
+    PUBNUB_ASSERT(pb_valid_ctx_ptr(pb));
+
+    pubnub_mutex_lock(pb->monitor);
+    if (!pbnc_can_start_transaction(pb)) {
+        pubnub_mutex_unlock(pb->monitor);
+        return PNR_IN_PROGRESS;
+    }
+
+#if PUBNUB_USE_GZIP_COMPRESSION
+    pb->core.gzip_msg_len = 0;
+    if (pbgzip_compress(pb, message) == PNR_OK) {
+        message = pb->core.gzip_msg_buf;
+    }
+#endif
+    rslt = pbcc_signal_prep(&pb->core, channel, message);
+    if (PNR_STARTED == rslt) {
+        pb->trans            = PBTT_SIGNAL;
+        pb->core.last_result = PNR_STARTED;
+        pb->flags.is_publish_via_post = true;
+        pbnc_fsm(pb);
+        rslt = pb->core.last_result;
+    }
+    pubnub_mutex_unlock(pb->monitor);
+
+    return rslt;
+}
+
+
 char const* pubnub_get(pubnub_t* pb)
 {
     char const* result;
