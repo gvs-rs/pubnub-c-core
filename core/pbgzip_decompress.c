@@ -98,7 +98,7 @@ static enum pubnub_res inflate_total(pubnub_t*      pb,
         if (NULL == newbuf) {
             PUBNUB_LOG_ERROR("Failed to reallocate decompression buffer!\n"
                              "Out length:%lu\n",
-                             out_len);
+                             (unsigned long)out_len);
             return PNR_REPLY_TOO_BIG;
         }
         pb->core.decomp_http_reply = newbuf;
@@ -107,8 +107,8 @@ static enum pubnub_res inflate_total(pubnub_t*      pb,
     if (out_len >= sizeof pb->core.decomp_http_reply) {
         PUBNUB_LOG_ERROR("Decompression buffer too small!\n"
                          "Size of buffer:%lu - Out length:%lu\n",
-                         sizeof pb->core.decomp_http_reply,
-                         out_len);
+                         (unsigned long)sizeof pb->core.decomp_http_reply,
+                         (unsigned long)out_len);
         return PNR_REPLY_TOO_BIG;
     }
 #endif
