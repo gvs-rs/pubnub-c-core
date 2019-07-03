@@ -360,13 +360,13 @@ void pbcc_headers_for_publish_via_post(struct pbcc_context *pb, char *header, si
 #if PUBNUB_USE_GZIP_COMPRESSION
     if (pb->gzip_msg_len != 0) {
         char h_encoding[] = "Content-Encoding: gzip";
-        length = snprintf(header, max_length, "%u\r\n", pb->gzip_msg_len);
+        length = snprintf(header, max_length, "%lu\r\n", pb->gzip_msg_len);
         PUBNUB_ASSERT_OPT(max_length > length + sizeof h_encoding - 1);
         memcpy(header + length, h_encoding, sizeof h_encoding - 1);
         return;
     }
 #endif
-    length = snprintf(header, max_length, "%zu", strlen(pb->message_to_publish));
+    length = snprintf(header, max_length, "%lu", strlen(pb->message_to_publish));
     PUBNUB_ASSERT_OPT(max_length > length);
     return;
 }
