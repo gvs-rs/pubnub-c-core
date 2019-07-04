@@ -467,7 +467,6 @@ enum pubnub_res pbcc_signal_prep(struct pbcc_context* pb, const char* channel, c
 {
     char const* const uname = pubnub_uname();
     char const*       uuid = pbcc_uuid_get(pb);
-    enum pubnub_res   rslt = PNR_OK;
 
     PUBNUB_ASSERT_OPT(message != NULL);
 
@@ -483,7 +482,7 @@ enum pubnub_res pbcc_signal_prep(struct pbcc_context* pb, const char* channel, c
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
 
-    return (rslt != PNR_OK) ? rslt : PNR_STARTED;
+    return PNR_STARTED;
 }
 
 
