@@ -242,8 +242,8 @@ public:
         return publish_via_post_with_gzip(channel, message.toJson());
     }
 
-    /** Sends a signal @p message (in JSON format) on @p p channel via POST method,
-        using the @p p context. This actually means "initiate a signal transaction".
+    /** Sends a signal @p message (in JSON format) on @p channel via POST method.
+        This actually means "initiate a signal transaction".
         It has similar behaviour as publish via POST, but unlike publish, signal
         erases previous signal message on server(, on a given channel,) and you
         can not send any metadata.
@@ -271,7 +271,6 @@ public:
         will not be @c PNR_OK (but you will still be able to get the
         result code and the description).
 
-        @param p The pubnub context. Can't be NULL
         @param channel The string with the channel to signal to.
         @param message The signal message to send, expected to be in JSON format
 
