@@ -113,7 +113,7 @@ pubnub_res pubnub_qt::startRequest(pubnub_res result, pubnub_trans transaction)
         if (!d_use_http_keep_alive) {
             req.setRawHeader("Connection", "Close");
         }
-        if (PBTT_PUBLISH == transaction) {
+        if ((PBTT_PUBLISH == transaction) || (PBTT_SIGNAL == transaction)) {
             switch (d_publish_method) {
             case pubnubPublishViaPOSTwithGZIP:
                 req.setRawHeader("Content-Encoding", "gzip");
@@ -293,6 +293,21 @@ pubnub_res pubnub_qt::publish_via_post_with_gzip(QString const&    channel,
                                           d_publish_method),
                         PBTT_PUBLISH);
 }
+
+
+pubnub_res pubnub_qt::signal(QString const& channel, QByteArray const& message)
+{
+    QMutexLocker lk(&d_mutex);
+    d_message_to_publish = pack_message_to_gzip(message);
+    d_publish_method     = (d_message_to_publish.size() != message.size())
+                           ? pubnubPublishViaPOSTwithGZIP
+                           : pubnubPublishViaPOST;
+    return startRequest(pbcc_signal_prep(d_context.data(),
+                                         channel.toLatin1().data(),
+                                         d_message_to_publish.data()),
+                        PBTT_SIGNAL);
+}
+
 
 pubnub_res pubnub_qt::subscribe(QString const& channel, QString const& channel_group)
 {

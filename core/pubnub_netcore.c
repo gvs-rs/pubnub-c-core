@@ -166,6 +166,7 @@ static enum pubnub_res dont_parse(struct pbcc_context* p)
 static PFpbcc_parse_response_T m_aParseResponse[] = { dont_parse,
                                                       pbcc_parse_subscribe_response,
                                                       pbcc_parse_publish_response,
+                                                      pbcc_parse_publish_response, /* PBTT_SIGNAL */
 #if PUBNUB_ONLY_PUBSUB_API
                                                       dont_parse,
                                                       dont_parse,

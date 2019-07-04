@@ -116,6 +116,8 @@ enum pubnub_trans {
     PBTT_SUBSCRIBE,
     /** Publish operation/transaction */
     PBTT_PUBLISH,
+    /** Signal operation/transaction */
+    PBTT_SIGNAL,
     /** Leave (channel(s)) operation/transaction */
     PBTT_LEAVE,
     /** Time (get from Pubnub server) operation/transaction */

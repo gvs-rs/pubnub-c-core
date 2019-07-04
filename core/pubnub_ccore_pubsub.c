@@ -463,6 +463,29 @@ enum pubnub_res pbcc_publish_prep(struct pbcc_context*       pb,
 }
 
 
+enum pubnub_res pbcc_signal_prep(struct pbcc_context* pb, const char* channel, const char* message)
+{
+    char const* const uname = pubnub_uname();
+    char const*       uuid = pbcc_uuid_get(pb);
+
+    PUBNUB_ASSERT_OPT(message != NULL);
+
+    pb->message_to_publish = message;
+    pb->http_content_len = 0;
+    pb->http_buf_len = snprintf(pb->http_buf,
+                                sizeof pb->http_buf,
+                                "/v1/signal/%s/%s/",
+                                pb->publish_key,
+                                pb->subscribe_key);
+    APPEND_URL_ENCODED_M(pb, channel);
+    APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
+    APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
+    APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
+
+    return PNR_STARTED;
+}
+
+
 enum pubnub_res pbcc_subscribe_prep(struct pbcc_context* p,
                                     char const*          channel,
                                     char const*          channel_group,
