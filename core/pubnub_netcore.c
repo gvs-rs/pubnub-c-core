@@ -12,6 +12,9 @@
 #if PUBNUB_USE_ADVANCED_HISTORY
 #include "core/pbcc_advanced_history.h"
 #endif
+#if PUBNUB_USE_ENTITY_API
+#include "core/pbcc_entity_api.h"
+#endif
 #include "core/pubnub_proxy_core.h"
 
 #include <string.h>
@@ -42,6 +45,13 @@
 #define possible_gzip_response(pb)
 #endif /* PUBNUB_RECEIVE_GZIP_RESPONSE */
 
+#if PUBNUB_USE_ENTITY_API
+#define PATCH_OR_POST(flags) ((flags).is_patch_or_delete ? "PATCH " : "POST ")
+#define DELETE_OR_GET(flags) ((flags).is_patch_or_delete ? "DELETE " : "GET ")
+#else
+#define PATCH_OR_POST(flags) "POST "
+#define DELETE_OR_GET(flags) "GET "
+#endif /* PUBNUB_USE_ENTITY_API */
 
 static int send_fin_head(struct pubnub_* pb)
 {
@@ -207,6 +217,22 @@ static PFpbcc_parse_response_T m_aParseResponse[] = { dont_parse,
 #else
     , dont_parse /* PBTT_MESSAGE_COUNTS */
 #endif
+#if PUBNUB_USE_ENTITY_API
+    , pbcc_parse_entity_api_response /* PBTT_FETCH_ALL_USERS */
+    , pbcc_parse_entity_api_response /* PBTT_CREATE_USER */
+    , pbcc_parse_entity_api_response /* PBTT_FETCH_USER */
+    , pbcc_parse_entity_api_response /* PBTT_UPDATE_USER */
+    , pbcc_parse_entity_api_response /* PBTT_DELETE_USER */
+    , pbcc_parse_entity_api_response /* PBTT_FETCH_ALL_SPACES */
+    , pbcc_parse_entity_api_response /* PBTT_CREATE_SPACE */
+    , pbcc_parse_entity_api_response /* PBTT_FETCH_SPACE */
+    , pbcc_parse_entity_api_response /* PBTT_UPDATE_SPACE */
+    , pbcc_parse_entity_api_response /* PBTT_DELETE_SPACE */
+    , pbcc_parse_entity_api_response /* PBTT_FETCH_USERS_SPACE_MEMBERSHIPS */
+    , pbcc_parse_entity_api_response /* PBTT_UPDATE_USERS_SPACE_MEMBERSHIPS */
+    , pbcc_parse_entity_api_response /* PBTT_FETCH_MEMBERS_IN_SPACE */
+    , pbcc_parse_entity_api_response /* PBTT_UPDATE_MEMBERS_IN_SPACE */
+#endif /* PUBNUB_USE_ENTITY_API */
 #endif /* PUBNUB_ONLY_PUBSUB_API */
 };
 
@@ -594,7 +620,9 @@ next_state:
             }
         }
 #endif /* PUBNUB_USE_SSL */
-        i = pbpal_send_str(pb, pb->flags.is_publish_via_post ? "POST " : "GET ");
+        i = pbpal_send_str(
+                pb,
+                pb->flags.is_via_post ? PATCH_OR_POST(pb->flags) : DELETE_OR_GET(pb->flags));
         if (i < 0) {
             outcome_detected(pb, PNR_IO_ERROR);
             break;
@@ -606,7 +634,9 @@ next_state:
         enum pbpal_tls_result res = pbpal_check_tls(pb);
         switch (res) {
         case pbtlsEstablished:
-            i = pbpal_send_str(pb, pb->flags.is_publish_via_post ? "POST " : "GET ");
+            i = pbpal_send_str(
+                    pb,
+                    pb->flags.is_via_post ? PATCH_OR_POST(pb->flags) : DELETE_OR_GET(pb->flags));
             if (i < 0) {
                 outcome_detected(pb, PNR_IO_ERROR);
                 break;
@@ -819,16 +849,16 @@ next_state:
                 }
             }
 #endif
-            if (pb->flags.is_publish_via_post
+            if (pb->flags.is_via_post
 #if PUBNUB_PROXY_API
                 && (pb->proxy_tunnel_established || (pbproxyNONE == pb->proxy_type))
 #endif
             ) {
                 char hedr[128] = "\r\n";
-                pbcc_headers_for_publish_via_post(
+                pbcc_via_post_headers(
                     &(pb->core), hedr + 2, sizeof hedr - 2);
                 PUBNUB_LOG_TRACE(
-                    "Sending HTTP 'publish via POST' headers: '%s'\n", hedr);
+                    "Sending HTTP 'via POST' headers: '%s'\n", hedr);
                 pb->state = PBS_TX_EXTRA_HEADERS;
                 if (-1 == pbpal_send_str(pb, hedr)) {
                     outcome_detected(pb, PNR_IO_ERROR);
@@ -858,12 +888,12 @@ next_state:
             outcome_detected(pb, PNR_IO_ERROR);
         }
         else if (0 == i) {
-            if (pb->flags.is_publish_via_post
+            if (pb->flags.is_via_post
 #if PUBNUB_PROXY_API
                 && (pb->proxy_tunnel_established || (pbproxyNONE == pb->proxy_type))
 #endif
             ) {
-                const char* message = pb->core.message_to_publish;
+                const char* message = pb->core.message_to_send;
 #if PUBNUB_USE_GZIP_COMPRESSION
                 size_t len = (pb->core.gzip_msg_len != 0) ? pb->core.gzip_msg_len
                                                           : strlen(message);
@@ -1201,7 +1231,9 @@ next_state:
             break;
         }
         pb->state = PBS_TX_GET;
-        i = pbpal_send_str(pb, pb->flags.is_publish_via_post ? "POST " : "GET ");
+        i = pbpal_send_str(
+                pb,
+                pb->flags.is_via_post ? PATCH_OR_POST(pb->flags) : DELETE_OR_GET(pb->flags));
         if (i < 0) {
             pb->state = close_kept_alive_connection(pb);
         }

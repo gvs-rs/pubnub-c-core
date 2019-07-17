@@ -43,6 +43,10 @@
 #define PUBNUB_USE_ADVANCED_HISTORY 0
 #endif
 
+#if !defined(PUBNUB_USE_ENTITY_API)
+#define PUBNUB_USE_ENTITY_API 0
+#endif
+
 #if !defined(PUBNUB_PROXY_API)
 #define PUBNUB_PROXY_API 0
 #elif PUBNUB_PROXY_API
@@ -207,7 +211,14 @@ struct pubnub_flags {
     /** Indicates whether to send the message in http message body, or if not,
         encoded 'via GET'(, or maybe some third method).
       */
-    bool is_publish_via_post : 1;
+    bool is_via_post : 1;
+
+#if PUBNUB_USE_ENTITY_API
+    /** If it's 'PATCH', or 'DELETE' method used(as 'POST', or 'GET' alternatives respectivally),
+        than it is set to 'true'. Otherwise it's false.
+      */
+    bool is_patch_or_delete : 1;
+#endif /* PUBNUB_USE_ENTITY_API */
 };
 
 #if PUBNUB_CHANGE_DNS_SERVERS

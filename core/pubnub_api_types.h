@@ -8,7 +8,7 @@
     These are the definitions of types used by most functions of the
     Pubnub C-core API. Users of the SDK in general don't need to
     include it, as other headers of the API will include it for them.
- */
+  */
 
 struct pubnub_;
 
@@ -97,7 +97,13 @@ enum pubnub_res {
     /** Server reports an error in the response */
     PNR_ERROR_ON_SERVER,
     /** Proxy authentication failed */
-    PNR_AUTHENTICATION_FAILED
+    PNR_AUTHENTICATION_FAILED,
+    /** Entity api invalid parameter */
+    PNR_ENTITY_API_INVALID_PARAM,
+    /** Entity api transaction has finished successfully */
+    PNR_ENTITY_API_OK,
+    /** Entity api transaction reported an error */
+    PNR_ENTITY_API_ERROR
 };
 
 /** 'pubnub_cancel()' return value */
@@ -105,7 +111,7 @@ enum pubnub_cancel_res {
     /** 'cancel' finished */
     PN_CANCEL_FINISHED,
     /** 'cancel' started */
-    PN_CANCEL_STARTED,
+    PN_CANCEL_STARTED
 };
 
 /** Type of Pubnub operation/transaction */
@@ -164,6 +170,44 @@ enum pubnub_trans {
         history counts for channels listed.
      */
     PBTT_MESSAGE_COUNTS,
+    /** Entity api transaction. Returns a paginated list of users associated with the
+        subscription key.
+      */
+#if PUBNUB_USE_ENTITY_API
+    PBTT_FETCH_ALL_USERS,
+    /** Entity api transaction. Creates a user with the attributes specified. */
+    PBTT_CREATE_USER,
+    /** Entity api transaction. Returns the user object specified with user_id */
+    PBTT_FETCH_USER,
+    /** Entity api transaction. Updates users data( on pubnub server) specified with user_id */
+    PBTT_UPDATE_USER,
+    /** Entity api transaction. Deletes user data( on pubnub server) specified with user_id */
+    PBTT_DELETE_USER,
+    /** Entity api transaction. Returns a paginated list of spaces associated with the
+        subscription key.
+      */
+    PBTT_FETCH_ALL_SPACES,
+    /** Entity api transaction. Creates a space with the attributes specified. */
+    PBTT_CREATE_SPACE,
+    /** Entity api transaction. Returns the space object specified with space_id */
+    PBTT_FETCH_SPACE,
+    /** Entity api transaction. Updates space data( on pubnub server) specified with space_id */
+    PBTT_UPDATE_SPACE,
+    /** Entity api transaction. Deletes space data( on pubnub server) specified with space_id */
+    PBTT_DELETE_SPACE,
+    /** Entity api transaction. Returns the space memberships of the user specified with user_id.
+      */
+    PBTT_FETCH_USERS_SPACE_MEMBERSHIPS,
+    /** Entity api transaction. Updates the space memberships of the user specified with user_id.
+      */
+    PBTT_UPDATE_USERS_SPACE_MEMBERSHIPS,
+    /** Entity api transaction. Returns all users in the space specified by space_id.
+      */
+    PBTT_FETCH_MEMBERS_IN_SPACE,
+    /** Entity api transaction. Updates the list of members of the space specified with space_id.
+      */
+    PBTT_UPDATE_MEMBERS_IN_SPACE,
+#endif
     /** Count the number of transaction types */
     PBTT_MAX
 };
@@ -182,10 +226,13 @@ enum pubnub_tribool {
     pbccNotSet
 };
 
-enum pubnub_publish_method {
-    pubnubPublishViaPOST,
-    pubnubPublishViaPOSTwithGZIP,
-    pubnubPublishViaGET
+enum pubnub_method {
+    pubnubSendViaPOST,
+    pubnubSendViaPOSTwithGZIP,
+    pubnubSendViaGET,
+    pubnubUsePATCH,
+    pubnubUsePATCHwithGZIP,
+    pubnubUseDELETE
 };
 
 /** Enum that describes an error when checking parameters passed to a function */
