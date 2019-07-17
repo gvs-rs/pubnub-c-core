@@ -10,6 +10,8 @@
     include it, as other headers of the API will include it for them.
   */
 
+#include "pubnub_config.h"
+
 struct pubnub_;
 
 /** A pubnub context. An opaque data structure that holds all the data

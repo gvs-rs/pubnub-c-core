@@ -187,7 +187,7 @@
     collection of rest API features that enables "CRUD"(Create, Read, Update and Delete)
     on two new pubnub objects: User and Space, as well as manipulating connections
     between them. */
-#define PUBNUB_USE_ENTITY_API 0
+#define PUBNUB_USE_ENTITY_API 1
 #endif
 
 
