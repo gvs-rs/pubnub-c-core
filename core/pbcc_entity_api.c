@@ -41,7 +41,7 @@ enum pubnub_res append_url_param_include(struct pbcc_context* pb,
         size_t param_val_len;
         if (NULL == include[i]) {
             PUBNUB_LOG_ERROR("append_url_param_include(pbcc=%p) - Invalid params: "
-                             "include[%d]=NULL, include_count=%lu\n",
+                             "include[%u]=NULL, include_count=%lu\n",
                              pb,
                              i,
                              (unsigned long)include_count);
@@ -52,7 +52,7 @@ enum pubnub_res append_url_param_include(struct pbcc_context* pb,
         if ((pb->http_buf_len + 1 + param_val_len + 1) > sizeof pb->http_buf) {
             PUBNUB_LOG_ERROR("append_url_param_include(pbcc=%p) - Ran out of buffer while appending "
                              "include params : "
-                             "include[%d]='%s', include_count=%lu\n",
+                             "include[%u]='%s', include_count=%lu\n",
                              pb,
                              i,
                              include[i],

@@ -401,15 +401,13 @@ public:
     }
     pubnub_tribool count()
     {
-        if (tribool::not_set == d_count) {
-            return pbccNotSet;
-        }
-        else if (false == d_count) {
+        if (false == d_count) {
             return pbccFalse;
         }
         else if (true == d_count) {
             return pbccTrue;
         }
+        return pbccNotSet;
     }
 };
 #endif /* PUBNUB_USE_ENTITY_API */    
