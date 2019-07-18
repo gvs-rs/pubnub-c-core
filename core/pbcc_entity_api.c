@@ -6,12 +6,15 @@
 #include "pubnub_json_parse.h"
 #include "pubnub_log.h"
 #include "pubnub_url_encode.h"
+#include "lib/pn_strnlen_s.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 /* Maximum number of entities to return in response */
-#define MAX_LIMIT 100
+#define MAX_ENTITIES_LIMIT 100
+/** Maximum include string element length */ 
+#define MAX_INCLUDE_ELEM_LENGTH 30
 
 enum pubnub_res append_url_param_include(struct pbcc_context* pb,
                                          char const** include, 
@@ -48,7 +51,7 @@ enum pubnub_res append_url_param_include(struct pbcc_context* pb,
         
             return PNR_ENTITY_API_INVALID_PARAM;
         }
-        param_val_len = strlen(include[i]);
+        param_val_len = pn_strnlen_s(include[i], MAX_INCLUDE_ELEM_LENGTH);
         if ((pb->http_buf_len + 1 + param_val_len + 1) > sizeof pb->http_buf) {
             PUBNUB_LOG_ERROR("append_url_param_include(pbcc=%p) - Ran out of buffer while appending "
                              "include params : "
@@ -82,7 +85,7 @@ enum pubnub_res pbcc_fetch_all_users_prep(struct pbcc_context* pb,
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
 
-    PUBNUB_ASSERT_OPT(limit > MAX_LIMIT);
+    PUBNUB_ASSERT_OPT(limit > MAX_ENTITIES_LIMIT);
 
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
@@ -181,7 +184,8 @@ enum pubnub_res pbcc_update_user_prep(struct pbcc_context* pb,
     
     PUBNUB_ASSERT_OPT(user_obj != NULL);
 
-    elem.end = pbjson_find_end_element(user_obj, user_obj + strlen(user_obj));
+    elem.end = pbjson_find_end_element(user_obj,
+                                       user_obj + pn_strnlen_s(user_obj, MAX_OBJECT_LENGTH));
     if ((*user_obj != '{') || (*elem.end != '}')) {
         PUBNUB_LOG_ERROR("pbcc_update_user_prep(pbcc=%p) - Invalid param: User object is not json - "
                          "user_obj='%s'\n",
@@ -267,7 +271,7 @@ enum pubnub_res pbcc_fetch_all_spaces_prep(struct pbcc_context* pb,
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
 
-    PUBNUB_ASSERT_OPT(limit > MAX_LIMIT);
+    PUBNUB_ASSERT_OPT(limit > MAX_ENTITIES_LIMIT);
 
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
@@ -366,7 +370,8 @@ enum pubnub_res pbcc_update_space_prep(struct pbcc_context* pb,
     
     PUBNUB_ASSERT_OPT(space_obj != NULL);
 
-    elem.end = pbjson_find_end_element(space_obj, space_obj + strlen(space_obj));
+    elem.end = pbjson_find_end_element(space_obj,
+                                       space_obj + pn_strnlen_s(space_obj, MAX_OBJECT_LENGTH));
     if ((*space_obj != '{') || (*elem.end != '}')) {
         PUBNUB_LOG_ERROR("pbcc_update_space_prep(pbcc=%p) - Invalid param: Space object is not json - "
                          "space_obj='%s'\n",
@@ -453,7 +458,7 @@ enum pubnub_res pbcc_fetch_users_space_memberships_prep(struct pbcc_context* pb,
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
 
-    PUBNUB_ASSERT_OPT(limit > MAX_LIMIT);
+    PUBNUB_ASSERT_OPT(limit > MAX_ENTITIES_LIMIT);
 
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
@@ -522,7 +527,7 @@ enum pubnub_res pbcc_fetch_members_in_space_prep(struct pbcc_context* pb,
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
 
-    PUBNUB_ASSERT_OPT(limit > MAX_LIMIT);
+    PUBNUB_ASSERT_OPT(limit > MAX_ENTITIES_LIMIT);
 
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,

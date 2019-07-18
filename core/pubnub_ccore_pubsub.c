@@ -6,6 +6,8 @@
 #include "pubnub_json_parse.h"
 #include "pubnub_log.h"
 #include "pubnub_url_encode.h"
+#include "lib/pn_strnlen_s.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -368,8 +370,10 @@ void pbcc_via_post_headers(struct pbcc_context* pb,
         return;
     }
 #endif
-    length = snprintf(
-        header, max_length, "%lu", (unsigned long)strlen(pb->message_to_send));
+    length = snprintf(header,
+                      max_length,
+                      "%lu",
+                      (unsigned long)pn_strnlen_s(pb->message_to_send, MAX_OBJECT_LENGTH));
     PUBNUB_ASSERT_OPT(max_length > length);
 }
 
