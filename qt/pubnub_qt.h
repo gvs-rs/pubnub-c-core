@@ -373,7 +373,9 @@ public:
 
         @return #PNR_STARTED on success, an error otherwise
     */
-    pubnub_res signal(QString const &channel, QByteArray const &message);
+    pubnub_res signal(QString const &channel,
+                      QByteArray const &message,
+                      pubnub_method method=pubnubSendViaGET);
     
     /** Subscribe to @p channel and/or @p channel_group. This actually
         means "initiate a subscribe operation/transaction". The outcome

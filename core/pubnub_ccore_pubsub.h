@@ -272,7 +272,10 @@ enum pubnub_res pbcc_publish_prep(struct pbcc_context* pb,
 /** Prepares the Signal operation (transaction), mostly by
     formatting the URI of the HTTP request.
  */
-enum pubnub_res pbcc_signal_prep(struct pbcc_context* pb, const char* channel, const char* message);
+enum pubnub_res pbcc_signal_prep(struct pbcc_context* pb,
+                                 const char* channel,
+                                 enum pubnub_method method,
+                                 const char* message);
 
 /** Prepares the Subscribe operation (transaction), mostly by
     formatting the URI of the HTTP request.

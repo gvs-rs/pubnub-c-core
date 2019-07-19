@@ -111,7 +111,10 @@ enum pubnub_res pubnub_publish(pubnub_t* pb, const char* channel, const char* me
 }
 
 
-enum pubnub_res pubnub_signal(pubnub_t* pb, const char* channel, const char* message)
+enum pubnub_res pubnub_signal(pubnub_t* pb,
+                              const char* channel,
+                              enum pubnub_method method,
+                              const char* message)
 {
     enum pubnub_res rslt;
 
@@ -124,16 +127,18 @@ enum pubnub_res pubnub_signal(pubnub_t* pb, const char* channel, const char* mes
     }
 
 #if PUBNUB_USE_GZIP_COMPRESSION
-    pb->core.gzip_msg_len = 0;
-    if (pbgzip_compress(pb, message) == PNR_OK) {
-        message = pb->core.gzip_msg_buf;
+    if (method != pubnubSendViaGET) {
+        pb->core.gzip_msg_len = 0;
+        if (pbgzip_compress(pb, message) == PNR_OK) {
+            message = pb->core.gzip_msg_buf;
+        }
     }
 #endif
-    rslt = pbcc_signal_prep(&pb->core, channel, message);
+    rslt = pbcc_signal_prep(&pb->core, channel, method, message);
     if (PNR_STARTED == rslt) {
         pb->trans            = PBTT_SIGNAL;
         pb->core.last_result = PNR_STARTED;
-        pb->flags.is_via_post = true;
+        pb->flags.is_via_post = (method != pubnubSendViaGET);
         pbnc_fsm(pb);
         rslt = pb->core.last_result;
     }

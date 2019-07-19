@@ -317,16 +317,26 @@ pubnub_res pubnub_qt::publish_via_post_with_gzip(QString const&    channel,
 }
 
 
-pubnub_res pubnub_qt::signal(QString const& channel, QByteArray const& message)
+pubnub_res pubnub_qt::signal(QString const& channel,
+                             QByteArray const& message,
+                             pubnub_method method)
 {
     QMutexLocker lk(&d_mutex);
-    d_message_to_send = pack_message_to_gzip(message);
-    d_method = (d_message_to_send.size() != message.size())
-               ? pubnubSendViaPOSTwithGZIP
-               : pubnubSendViaPOST;
+    if (pubnubSendViaGET == method) {
+        d_method = method;
+    }
+    else {
+        d_message_to_send = pack_message_to_gzip(message);
+        d_method = (d_message_to_send.size() != message.size())
+                   ? pubnubSendViaPOSTwithGZIP
+                   : pubnubSendViaPOST;
+    }
     return startRequest(pbcc_signal_prep(d_context.data(),
                                          channel.toLatin1().data(),
-                                         d_message_to_send.data()),
+                                         d_method,
+                                         (pubnubSendViaGET == method)
+                                         ? message.data()
+                                         : d_message_to_send.data()),
                         PBTT_SIGNAL);
 }
 
