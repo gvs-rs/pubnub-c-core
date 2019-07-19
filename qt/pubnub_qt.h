@@ -339,9 +339,9 @@ public:
         return publish_via_post_with_gzip(channel, message.toJson());
     }
 
-    /** Sends a signal @p message (in JSON format) on @p channel via POST method.
-        This actually means "initiate a signal transaction".
-        It has similar behaviour as publish via POST, but unlike publish, signal
+    /** Sends a signal @p message (in JSON format) on @p channel via chosen
+        @p method(GET, or POST). This actually means "initiate a signal transaction".
+        It has similar behaviour as publish, but unlike publish transaction, signal
         erases previous signal message on server(, on a given channel,) and you
         can not send any metadata.
         There can be only up to one signal message at the time. If it's not renewed
@@ -370,7 +370,8 @@ public:
 
         @param channel The string with the channel to signal to.
         @param message The signal message to send, expected to be in JSON format
-
+        @param method The chosen performing method(GET, or POST) for the transaction
+                      (Method GET by default).
         @return #PNR_STARTED on success, an error otherwise
     */
     pubnub_res signal(QString const &channel,

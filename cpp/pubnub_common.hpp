@@ -639,7 +639,8 @@ public:
         return doit(pubnub_publish_ex(d_pb, channel.c_str(), d_message_to_send, opt.data()));
     }
 
-    /// Send a signal @p message on the @p channel.
+    /// Sends a signal @p message on the @p channel via chosen @p method.
+    /// (Method GET by default).
     /// @see pubnub_signal
     futres signal(std::string const& channel,
                   std::string const& message,
