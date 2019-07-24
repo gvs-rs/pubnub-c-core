@@ -1145,7 +1145,7 @@ public:
     pubnub_res delete_space(QString const& space_id);
 
     /** Initiates transaction that returns the space memberships of the user specified
-        by @p user_id, optionally including the custom data objects for… (ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА ОВОГА, ОДНОСНО, `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+        by @p user_id, optionally including the custom data objects for...
 
         If transaction is successful, the response(a JSON object) will
         always have key:
@@ -1251,7 +1251,7 @@ public:
     }
 
     /** Initiates transaction that returns all users in the space specified by @p space_id,
-        optionally including the custom data objects for… (ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА ОВОГА, ОДНОСНО, `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+        optionally including the custom data objects for...
 
         If transaction is successful, the response(a JSON object) will
         always have key:
@@ -1294,7 +1294,7 @@ public:
         always have key:
         - "status": with two possible values "ok" and "error"
         Complete answer will be available via pubnub_get().
-        Contains the spaces's memberships, optionally including the custom data objects for …(ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА ОВОГА, ОДНОСНО, `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+        Contains the spaces's memberships, optionally including the custom data objects for...
 
         @param space_id The Space ID for which to update the list of members in the space.
         @param update_obj The JSON object that defines the updates to perform.
@@ -1340,7 +1340,7 @@ public:
         always have key:
         - "status": with two possible values "ok" and "error"
         Complete answer will be available via pubnub_get().
-        Contains the spaces's memberships, optionally including the custom data objects for …(ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА ОВОГА, ОДНОСНО, `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+        Contains the spaces's memberships, optionally including the custom data objects for...
 
         @param space_id The Space ID for which to update the list of members in the space.
         @param update_obj The JSON object that defines the updates to perform.

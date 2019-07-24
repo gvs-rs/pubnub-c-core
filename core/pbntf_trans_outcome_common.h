@@ -1,10 +1,6 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-
-#if PUBNUB_USE_ENTITY_API
-#define ENTITY_API_PATCH_OR_DELETE_TO_FALSE(flags) (flags).is_patch_or_delete = false
-#else                                                               
-#define ENTITY_API_PATCH_OR_DELETE_TO_FALSE(flags)
-#endif
+#if !defined INC_PBNTF_TRANS_OUTCOME_COMMON
+#define      INC_PBNTF_TRANS_OUTCOME_COMMON
 
 /** This macro does the common "stuff to do" on the outcome of a
     transaction. Should be used by all `pbntf_trans_outcome()`
@@ -29,7 +25,8 @@
         default:                                                                   \
             break;                                                                 \
         }                                                                          \
-        M_pb_->flags.is_via_post = false;                                          \
-        ENTITY_API_PATCH_OR_DELETE_TO_FALSE(M_pb_->flags);                         \
+        M_pb_->method = pubnubSendViaGET;                                          \
         M_pb_->state = state;                                                      \
     } while (0)
+
+#endif /* INC_PBNTF_TRANS_OUTCOME_COMMON */

@@ -182,7 +182,7 @@ enum pubnub_res pubnub_delete_space(pubnub_t* pb, char const* space_id);
 
 
 /** Returns the space memberships of the user specified by @p user_id, optionally including
-    the custom data objects for… (ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА ОВОГА, ОДНОСНО, `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+    the custom data objects for...
     @param pb The pubnub context. Can't be NULL
     @param user_id The User ID for which to retrieve the space memberships for.
                    Cannot be NULL.
@@ -212,33 +212,28 @@ enum pubnub_res pubnub_fetch_users_space_memberships(pubnub_t* pb,
                                                      enum pubnub_tribool count);
 
 
-/** Updates the space memberships of the user specified by @p user_id. Use the `add`,
-    `update`, and `remove` properties in the @p update_obj to perform those operations
-    on one, or more memberships. Returns the user's space memberships, optionally
-    including the custom data objects for …(ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА
-    ОВОГА, ОДНОСНО, `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+/** Adds the space memberships of the user specified by @p user_id. Uses the `add` property
+    to perform those operations on one, or more memberships.
 
-    An example for @update_obj:
-    {
-      "add": [
-        {
-          "id": "my-channel"
-        }
-      ],
-      "update": [
-        {
-          "id": "main",
-          "custom": {
-            "starred": true
-          }
-        }
-      ],
-      "remove": [
-        {
-          "id": "space-0"
-        }
-      ]
-    }
+    @param pb The pubnub context. Can't be NULL
+    @param include array of (C) strings with additional/complex attributes to include in response.
+                   Use NULL if you don't want to retrieve additional attributes.
+    @param include_count dimension of @p include. Set 0 if you don’t want to retrieve additional
+                         attributes
+    @param update_obj The JSON object that defines the updates to perform.
+                      Cannot be NULL.
+    @return #PNR_STARTED on success, an error otherwise
+  */
+enum pubnub_res pubnub_add_users_space_memberships(pubnub_t* pb, 
+                                                   char const* user_id,
+                                                   char const** include,
+                                                   size_t include_count,
+                                                   char const* update_obj);
+
+
+/** Updates the space memberships of the user specified by @p user_id. Uses the `update` property
+    to perform those operations on one, or more memberships.
+
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
                    Use NULL if you don't want to retrieve additional attributes.
@@ -255,9 +250,27 @@ enum pubnub_res pubnub_update_users_space_memberships(pubnub_t* pb,
                                                       char const* update_obj);
 
 
+/** Removes the space memberships of the user specified by @p user_id. Uses the `remove` property
+    to perform those operations on one, or more memberships.
+
+    @param pb The pubnub context. Can't be NULL
+    @param include array of (C) strings with additional/complex attributes to include in response.
+                   Use NULL if you don't want to retrieve additional attributes.
+    @param include_count dimension of @p include. Set 0 if you don’t want to retrieve additional
+                         attributes
+    @param update_obj The JSON object that defines the updates to perform.
+                      Cannot be NULL.
+    @return #PNR_STARTED on success, an error otherwise
+  */
+enum pubnub_res pubnub_remove_users_space_memberships(pubnub_t* pb, 
+                                                      char const* user_id,
+                                                      char const** include,
+                                                      size_t include_count,
+                                                      char const* update_obj);
+
+
 /** Returns all users in the space specified with @p space_id, optionally including
-    the custom data objects for… (ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА ОВОГА, ОДНОСНО,
-    `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+    the custom data objects for...
     @param pb The pubnub context. Can't be NULL
     @param space_id The Space ID for which to retrieve the user object.
     @param include array of (C) strings with additional/complex attributes to include in response.
@@ -286,33 +299,25 @@ enum pubnub_res pubnub_fetch_members_in_space(pubnub_t* pb,
                                               enum pubnub_tribool count);
 
 
-/** Updates the list of members of the space specified with @p space_id. Use the `add`,
-    `update`, and `remove` properties in the @p update_obj to perform those operations
-    on one or more memberships. Returns the spaces's memberships, optionally including
-    the custom data objects for …(ОВО ИЗЛЕДА НИЈЕ БАШ ДОВРШЕНО, МОГУЋЕ ДА ОВОГА, ОДНОСНО,
-    `инцлуде` ПАРАМЕТРА УОПШТЕ НЕЋЕ БИТИ)
+/** Adds the list of members of the space specified with @p space_id. Uses the `add`
+    property to perform the operation on one or more members.
+    @param pb The pubnub context. Can't be NULL
+    @param include array of (C) strings with additional/complex attributes to include in response.
+                   Use NULL if you don't want to retrieve additional attributes.
+    @param include_count dimension of @p include. Set 0 if you don’t want to retrieve additional
+                         attributes
+    @param update_obj The JSON object that defines the updates to perform. Cannot be NULL.
+    @return #PNR_STARTED on success, an error otherwise
+  */
+enum pubnub_res pubnub_add_members_in_space(pubnub_t* pb, 
+                                               char const* space_id,
+                                               char const** include,
+                                               size_t include_count,
+                                               char const* update_obj);
 
-    An example for @update_obj:
-    {
-      "add": [
-        {
-          "id": "user-1"
-        }
-      ],
-      "update": [
-        {
-          "id": "user-2",
-          "custom": {
-            "role": “moderator”
-          }
-        }
-      ],
-      "remove": [
-        {
-          "id": "user-0"
-        }
-      ]
-    }
+
+/** Updates the list of members of the space specified with @p space_id. Uses the `update`
+    property to perform the operation on one or more members.
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
                    Use NULL if you don't want to retrieve additional attributes.
@@ -322,6 +327,23 @@ enum pubnub_res pubnub_fetch_members_in_space(pubnub_t* pb,
     @return #PNR_STARTED on success, an error otherwise
   */
 enum pubnub_res pubnub_update_members_in_space(pubnub_t* pb, 
+                                               char const* space_id,
+                                               char const** include,
+                                               size_t include_count,
+                                               char const* update_obj);
+
+
+/** Removes the list of members of the space specified with @p space_id. Uses the `remove`
+    property to perform the operation on one or more members.
+    @param pb The pubnub context. Can't be NULL
+    @param include array of (C) strings with additional/complex attributes to include in response.
+                   Use NULL if you don't want to retrieve additional attributes.
+    @param include_count dimension of @p include. Set 0 if you don’t want to retrieve additional
+                         attributes
+    @param update_obj The JSON object that defines the updates to perform. Cannot be NULL.
+    @return #PNR_STARTED on success, an error otherwise
+  */
+enum pubnub_res pubnub_remove_members_in_space(pubnub_t* pb, 
                                                char const* space_id,
                                                char const** include,
                                                size_t include_count,

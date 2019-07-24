@@ -216,7 +216,7 @@ struct pubnub_v2_message pubnub_get_v2(pubnub_t* pbp)
     seeker = pbjson_find_end_complex(start, end);
     if (seeker == end) {
         PUBNUB_LOG_ERROR(
-            "Message subscribe V2 response has no endo of JSON object\n");
+            "Message subscribe V2 response has no end of JSON object\n");
         return rslt;
     }
 
@@ -254,6 +254,19 @@ struct pubnub_v2_message pubnub_get_v2(pubnub_t* pbp)
         return rslt;
     }
 
+    jpresult = pbjson_get_object_value(&el, "e", &found);
+    if (jonmpOK == jpresult) {
+        if (pbjson_elem_equals_string(&found, "1")) {
+            rslt.is_signal = true;
+        }
+        else {
+            rslt.is_signal = false;
+        }
+    }
+    else {
+        rslt.is_signal = false;
+    }
+    
     jpresult = pbjson_get_object_value(&el, "p", &found);
     if (jonmpOK == jpresult) {
         struct pbjson_elem titel;

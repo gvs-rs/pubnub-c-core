@@ -121,16 +121,22 @@ struct pbcc_context {
         }                                                                      \
     }
 
-#define APPEND_URL_LITERAL_M(pbc, string_literal)                              \
+#define APPEND_URL_LITERAL_M_IMP(pbc, string_literal)                          \
     {                                                                          \
-        PUBNUB_ASSERT_OPT((string_literal) != NULL);                           \
         if ((pbc)->http_buf_len + sizeof(string_literal) > sizeof (pbc)->http_buf) {\
+            PUBNUB_LOG_ERROR("Error: Request buffer too small - cannot append url literal:\n"\
+                             "current_buffer_size = %lu\n"                     \
+                             "required_buffer_size = %lu\n",                   \
+                             sizeof (pbc)->http_buf,                           \
+                             (pbc)->http_buf_len + 1 + sizeof(string_literal));\
             return PNR_TX_BUFF_TOO_SMALL;                                      \
         }                                                                      \
         strcpy((pbc)->http_buf + (pbc)->http_buf_len, (string_literal));       \
         (pbc)->http_buf_len += sizeof(string_literal) - 1;                     \
     }
-       
+
+#define APPEND_URL_LITERAL_M(pbc, string_literal) APPEND_URL_LITERAL_M_IMP(pbc, "" string_literal)
+
 #define APPEND_URL_ENCODED_M(pbc, what)                                        \
     if ((what) != NULL) {                                                      \
         enum pubnub_res rslt_ = pbcc_url_encode((pbc), (what));                \
@@ -183,6 +189,35 @@ struct pbcc_context {
     if ((var) != pbccNotSet) {                                                 \
         char const* v_ = (var) ? "1" : "0";                                    \
         APPEND_URL_PARAM_M(pbc, name, v_, separator);                          \
+    }
+
+#if PUBNUB_USE_GZIP_COMPRESSION
+#define CHECK_IF_GZIP_COMPRESSED(pbc, message)                                 \
+    if ((pbc)->gzip_msg_len != 0) {                                            \
+        (pbc)->message_to_send = (message);                                    \
+    }                                                                          \
+    else {                                                                     \
+        (pbc)->message_to_send = strcpy((pbc)->http_buf + (pbc)->http_buf_len + 1,\
+                                        (message));                            \
+    }
+#else
+#define CHECK_IF_GZIP_COMPRESSED(pbc, message)                                 \
+    (pbc)->message_to_send = strcpy((pbc)->http_buf + (pbc)->http_buf_len + 1, \
+                                    (message))
+#endif /* PUBNUB_USE_GZIP_COMPRESSION */
+
+#define APPEND_MESSAGE_BODY_M(pbc, message)                                    \
+    if ((message) != NULL) {                                                   \
+        if (strlen(message) > sizeof (pbc)->http_buf - (pbc)->http_buf_len - 2) {\
+            PUBNUB_LOG_ERROR("Error: Request buffer too small - cannot pack the message body:\n"\
+                             "current_buffer_size = %lu\n"                     \
+                             "required_buffer_size = %lu\n",                   \
+                             sizeof (pbc)->http_buf,                           \
+                             (pbc)->http_buf_len + 2 + strlen(message));       \
+            return PNR_TX_BUFF_TOO_SMALL;                                      \
+        }                                                                      \
+        (pbc)->http_buf[(pbc)->http_buf_len] = '\0';                           \
+        CHECK_IF_GZIP_COMPRESSED((pbc), (message));                            \
     }
 
 

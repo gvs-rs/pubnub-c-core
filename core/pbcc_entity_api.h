@@ -153,7 +153,7 @@ enum pubnub_res pbcc_update_members_in_space_prep(struct pbcc_context* pb,
 
     @retval PNR_ENTITY_API_OK on success
     @retval PNR_ENTITY_API_ERROR on error
- */
+  */
 enum pubnub_res pbcc_parse_entity_api_response(struct pbcc_context* pb);
 
 

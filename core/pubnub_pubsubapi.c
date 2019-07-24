@@ -50,10 +50,7 @@ pubnub_t* pubnub_init(pubnub_t* p, const char* publish_key, const char* subscrib
     p->options.ipv6_connectivity = false;
 #endif
     p->flags.started_while_kept_alive = false;
-    p->flags.is_via_post        = false;
-#if PUBNUB_USE_ENTITY_API
-    p->flags.is_patch_or_delete = false;
-#endif
+    p->method                         = pubnubSendViaGET;
 #if PUBNUB_ADVANCED_KEEP_ALIVE
     p->keep_alive.max     = 1000;
     p->keep_alive.timeout = 50;
@@ -138,7 +135,7 @@ enum pubnub_res pubnub_signal(pubnub_t* pb,
     if (PNR_STARTED == rslt) {
         pb->trans            = PBTT_SIGNAL;
         pb->core.last_result = PNR_STARTED;
-        pb->flags.is_via_post = (method != pubnubSendViaGET);
+        pb->method           = method;
         pbnc_fsm(pb);
         rslt = pb->core.last_result;
     }

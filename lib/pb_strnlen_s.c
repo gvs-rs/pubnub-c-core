@@ -1,7 +1,7 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#include "lib/pn_strnlen_s.h"
+#include "lib/pb_strnlen_s.h"
 
-size_t pn_strnlen_s(const char *str, size_t strsz)
+size_t pb_strnlen_s(const char *str, size_t strsz)
 {
     unsigned i;
 

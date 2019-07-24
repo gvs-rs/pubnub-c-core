@@ -1,11 +1,8 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#if !defined INC_PN_STRLEN_S
-#define INC_PN_STRLEN_S
+#if !defined INC_PB_STRNLEN_S
+#define INC_PB_STRNLEN_S
 
 #include <stddef.h>
-
-/* Maximum object length that will be sent via PATCH, or POST */
-#define MAX_OBJECT_LENGTH 30000
 
 /** Returns the length of the given null-terminated byte string, that is, the number
     of characters in a character array whose first element is pointed to by @p str up to
@@ -18,6 +15,6 @@
     @param str pointer to the null-terminated byte string to be examined.
     @param strsz maximum number of characters to examine.
   */
-size_t pn_strnlen_s(const char *str, size_t strsz);
+size_t pb_strnlen_s(const char *str, size_t strsz);
 
-#endif /* INC_PN_STRLEN_S */
+#endif /* INC_Pb_STRNLEN_S */

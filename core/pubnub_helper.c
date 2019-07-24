@@ -65,9 +65,9 @@ char const* pubnub_res_2_string(enum pubnub_res e)
     case PNR_INVALID_PARAMETERS: return "Invalid function parameters";
     case PNR_ERROR_ON_SERVER: return "Server reported an error";
     case PNR_AUTHENTICATION_FAILED: return "Proxy authentication failed";
-    case PNR_ENTITY_API_INVALID_PARAM: return "Entity api invalid param";
-    case PNR_ENTITY_API_OK: return "Entity api transaction successfully finished";
-    case PNR_ENTITY_API_ERROR: return "Entity api transaction reported an error";
+    case PNR_ENTITY_API_INVALID_PARAM: return "Entity API invalid parameter";
+    case PNR_ENTITY_API_OK: return "Entity API transaction successfully finished";
+    case PNR_ENTITY_API_ERROR: return "Entity API transaction reported an error";
     }
     return "!?!?!";
 }

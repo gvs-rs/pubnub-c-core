@@ -200,15 +200,27 @@ enum pubnub_trans {
     /** Entity api transaction. Returns the space memberships of the user specified with user_id.
       */
     PBTT_FETCH_USERS_SPACE_MEMBERSHIPS,
-    /** Entity api transaction. Updates the space memberships of the user specified with user_id.
+    /** Entity api transaction. Adds the users space memberships specified with user_id.
+      */
+    PBTT_ADD_USERS_SPACE_MEMBERSHIPS,
+    /** Entity api transaction. Updates the users space memberships specified with user_id.
       */
     PBTT_UPDATE_USERS_SPACE_MEMBERSHIPS,
+    /** Entity api transaction. Removes the users space memberships specified with user_id.
+      */
+    PBTT_REMOVE_USERS_SPACE_MEMBERSHIPS,
     /** Entity api transaction. Returns all users in the space specified by space_id.
       */
     PBTT_FETCH_MEMBERS_IN_SPACE,
+    /** Entity api transaction. Adds the list of members of the space specified with space_id.
+      */
+    PBTT_ADD_MEMBERS_IN_SPACE,
     /** Entity api transaction. Updates the list of members of the space specified with space_id.
       */
     PBTT_UPDATE_MEMBERS_IN_SPACE,
+    /** Entity api transaction. Removes the list of members of the space specified with space_id.
+      */
+    PBTT_REMOVE_MEMBERS_IN_SPACE,
 #endif
     /** Count the number of transaction types */
     PBTT_MAX
@@ -229,10 +241,10 @@ enum pubnub_tribool {
 };
 
 enum pubnub_method {
-    pubnubSendViaPOST,
-    pubnubSendViaPOSTwithGZIP,
     pubnubSendViaGET,
+    pubnubSendViaPOST,
     pubnubUsePATCH,
+    pubnubSendViaPOSTwithGZIP,
     pubnubUsePATCHwithGZIP,
     pubnubUseDELETE
 };

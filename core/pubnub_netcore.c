@@ -45,13 +45,50 @@
 #define possible_gzip_response(pb)
 #endif /* PUBNUB_RECEIVE_GZIP_RESPONSE */
 
-#if PUBNUB_USE_ENTITY_API
-#define PATCH_OR_POST(flags) ((flags).is_patch_or_delete ? "PATCH " : "POST ")
-#define DELETE_OR_GET(flags) ((flags).is_patch_or_delete ? "DELETE " : "GET ")
-#else
-#define PATCH_OR_POST(flags) "POST "
-#define DELETE_OR_GET(flags) "GET "
-#endif /* PUBNUB_USE_ENTITY_API */
+bool HTTP_request_has_body(uint8_t method)
+{
+    switch(method) {
+    case pubnubSendViaGET:
+    case pubnubUseDELETE:
+        return false;
+    case pubnubSendViaPOST:
+    case pubnubUsePATCH:
+#if PUBNUB_USE_GZIP_COMPRESSION
+    case pubnubSendViaPOSTwithGZIP:
+    case pubnubUsePATCHwithGZIP:
+#endif
+        return true;
+    default:
+        PUBNUB_LOG_ERROR("Error: HTTP_message_has_body(method): unhandled method: %u\n",
+                         method);
+        return false;
+    }
+}
+
+
+static char const* get_method_verb_string(uint8_t method)
+{
+    switch(method) {
+    case pubnubSendViaGET:
+        return "GET ";
+    case pubnubSendViaPOST:
+#if PUBNUB_USE_GZIP_COMPRESSION
+    case pubnubSendViaPOSTwithGZIP:
+#endif
+        return "POST ";
+    case pubnubUsePATCH:
+#if PUBNUB_USE_GZIP_COMPRESSION
+    case pubnubUsePATCHwithGZIP:
+#endif
+        return "PATCH ";
+    case pubnubUseDELETE:
+        return "DELETE ";
+    default:
+        PUBNUB_LOG_ERROR("Error: get_method_verb_string(method): unhandled method: %u\n",
+                         method);
+        return "UNKOWN ";
+    }
+}
 
 static int send_fin_head(struct pubnub_* pb)
 {
@@ -229,9 +266,13 @@ static PFpbcc_parse_response_T m_aParseResponse[] = { dont_parse,
     , pbcc_parse_entity_api_response /* PBTT_UPDATE_SPACE */
     , pbcc_parse_entity_api_response /* PBTT_DELETE_SPACE */
     , pbcc_parse_entity_api_response /* PBTT_FETCH_USERS_SPACE_MEMBERSHIPS */
+    , pbcc_parse_entity_api_response /* PBTT_ADD_USERS_SPACE_MEMBERSHIPS */
     , pbcc_parse_entity_api_response /* PBTT_UPDATE_USERS_SPACE_MEMBERSHIPS */
+    , pbcc_parse_entity_api_response /* PBTT_REMOVE_USERS_SPACE_MEMBERSHIPS */
     , pbcc_parse_entity_api_response /* PBTT_FETCH_MEMBERS_IN_SPACE */
+    , pbcc_parse_entity_api_response /* PBTT_ADD_MEMBERS_IN_SPACE */
     , pbcc_parse_entity_api_response /* PBTT_UPDATE_MEMBERS_IN_SPACE */
+    , pbcc_parse_entity_api_response /* PBTT_REMOVE_MEMBERS_IN_SPACE */
 #endif /* PUBNUB_USE_ENTITY_API */
 #endif /* PUBNUB_ONLY_PUBSUB_API */
 };
@@ -620,9 +661,7 @@ next_state:
             }
         }
 #endif /* PUBNUB_USE_SSL */
-        i = pbpal_send_str(
-                pb,
-                pb->flags.is_via_post ? PATCH_OR_POST(pb->flags) : DELETE_OR_GET(pb->flags));
+        i = pbpal_send_str(pb, get_method_verb_string(pb->method));
         if (i < 0) {
             outcome_detected(pb, PNR_IO_ERROR);
             break;
@@ -634,9 +673,7 @@ next_state:
         enum pbpal_tls_result res = pbpal_check_tls(pb);
         switch (res) {
         case pbtlsEstablished:
-            i = pbpal_send_str(
-                    pb,
-                    pb->flags.is_via_post ? PATCH_OR_POST(pb->flags) : DELETE_OR_GET(pb->flags));
+            i = pbpal_send_str(pb, get_method_verb_string(pb->method));
             if (i < 0) {
                 outcome_detected(pb, PNR_IO_ERROR);
                 break;
@@ -849,7 +886,7 @@ next_state:
                 }
             }
 #endif
-            if (pb->flags.is_via_post
+            if (HTTP_request_has_body(pb->method)
 #if PUBNUB_PROXY_API
                 && (pb->proxy_tunnel_established || (pbproxyNONE == pb->proxy_type))
 #endif
@@ -858,7 +895,7 @@ next_state:
                 pbcc_via_post_headers(
                     &(pb->core), hedr + 2, sizeof hedr - 2);
                 PUBNUB_LOG_TRACE(
-                    "Sending HTTP 'via POST' headers: '%s'\n", hedr);
+                    "Sending HTTP 'via POST, or PATCH' headers: '%s'\n", hedr);
                 pb->state = PBS_TX_EXTRA_HEADERS;
                 if (-1 == pbpal_send_str(pb, hedr)) {
                     outcome_detected(pb, PNR_IO_ERROR);
@@ -888,7 +925,7 @@ next_state:
             outcome_detected(pb, PNR_IO_ERROR);
         }
         else if (0 == i) {
-            if (pb->flags.is_via_post
+            if (HTTP_request_has_body(pb->method)
 #if PUBNUB_PROXY_API
                 && (pb->proxy_tunnel_established || (pbproxyNONE == pb->proxy_type))
 #endif
@@ -1231,9 +1268,7 @@ next_state:
             break;
         }
         pb->state = PBS_TX_GET;
-        i = pbpal_send_str(
-                pb,
-                pb->flags.is_via_post ? PATCH_OR_POST(pb->flags) : DELETE_OR_GET(pb->flags));
+        i = pbpal_send_str(pb, get_method_verb_string(pb->method));
         if (i < 0) {
             pb->state = close_kept_alive_connection(pb);
         }

@@ -6,7 +6,7 @@
 #include "pubnub_json_parse.h"
 #include "pubnub_log.h"
 #include "pubnub_url_encode.h"
-#include "lib/pn_strnlen_s.h"
+#include "lib/pb_strnlen_s.h"
 
 
 #include <stdio.h>
@@ -373,7 +373,7 @@ void pbcc_via_post_headers(struct pbcc_context* pb,
     length = snprintf(header,
                       max_length,
                       "%lu",
-                      (unsigned long)pn_strnlen_s(pb->message_to_send, MAX_OBJECT_LENGTH));
+                      (unsigned long)pb_strnlen_s(pb->message_to_send, PUBNUB_MAX_OBJECT_LENGTH));
     PUBNUB_ASSERT_OPT(max_length > length);
 }
 
@@ -439,9 +439,6 @@ enum pubnub_res pbcc_publish_prep(struct pbcc_context* pb,
         pb->http_buf[pb->http_buf_len++] = '/';
         APPEND_URL_ENCODED_M(pb, message);
     }
-    else {
-        pb->message_to_send = message;
-    }
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
@@ -461,6 +458,9 @@ enum pubnub_res pbcc_publish_prep(struct pbcc_context* pb,
         pb->http_buf_len += param_name_len;
         pb->http_buf[pb->http_buf_len++] = '=';
         rslt                             = pbcc_url_encode(pb, meta);
+    }
+    if ((PNR_OK == rslt) && (method != pubnubSendViaGET)) {
+        APPEND_MESSAGE_BODY_M(pb, message);
     }
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
@@ -488,13 +488,13 @@ enum pubnub_res pbcc_signal_prep(struct pbcc_context* pb,
         APPEND_URL_LITERAL_M(pb, "/0/");
         APPEND_URL_ENCODED_M(pb, message);
     }
-    else {
-        pb->message_to_send = message;
-    }
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
-
+    if (method != pubnubSendViaGET) {
+        APPEND_MESSAGE_BODY_M(pb, message);
+    }
+        
     return PNR_STARTED;
 }
 

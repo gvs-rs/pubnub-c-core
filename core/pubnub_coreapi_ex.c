@@ -71,7 +71,7 @@ enum pubnub_res pubnub_publish_ex(pubnub_t*                     pb,
     if (PNR_STARTED == rslt) {
         pb->trans            = PBTT_PUBLISH;
         pb->core.last_result = PNR_STARTED;
-        pb->flags.is_via_post = (opts.method != pubnubSendViaGET);
+        pb->method           = opts.method;
         pbnc_fsm(pb);
         rslt = pb->core.last_result;
     }
