@@ -1,12 +1,12 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#include "pubnub_ccore_pubsub.h"
+#include "pubnub_internal.h"
 #include "pubnub_version.h"
 #include "pubnub_assert.h"
-#include "pubnub_internal.h"
 #include "pubnub_json_parse.h"
 #include "pubnub_log.h"
 #include "pubnub_url_encode.h"
 #include "lib/pb_strnlen_s.h"
+#include "pubnub_ccore_pubsub.h"
 
 
 #include <stdio.h>

@@ -6,6 +6,7 @@
 #include "core/pubnub_assert.h"
 #include "core/pubnub_timers.h"
 #include "core/pubnub_log.h"
+#include "lib/pb_strnlen_s.h"
 #include "core/pbcc_entity_api.h"
 #include "core/pubnub_entity_api.h"
 
@@ -16,14 +17,14 @@
 
 #define FORM_THE_OBJECT(pb, function_name_literal, obj_buffer, key_literal, json) \
 do {                                                                              \
-    if (sizeof obj_buffer < sizeof(key_literal) + strlen(json) + 1) {             \
+    if (sizeof obj_buffer < sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1) {\
         PUBNUB_LOG_ERROR(function_name_literal "(pb=%p) - "                       \
                          "buffer size is too small: "                             \
                          "current_buffer_size = %lu\n"                            \
                          "required_buffer_size = %lu\n",                          \
                          (pb),                                                    \
                          sizeof(obj_buffer),                                      \
-                         sizeof(key_literal) + strlen(json) + 1);                 \
+                         sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1);\
         return PNR_TX_BUFF_TOO_SMALL;                                             \
     }                                                                             \
     strcat((obj_buffer), (json));                                                 \

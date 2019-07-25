@@ -29,7 +29,7 @@ static enum pubnub_res publish(pubnub_t* pbp, char const* chan, char const* meta
 }
 
 
-static enum pubnub_res signal(pubnub_t* pbp, char const* chan)
+static enum pubnub_res signal_trans(pubnub_t* pbp, char const* chan)
 {
     enum pubnub_res res;
     
@@ -111,7 +111,7 @@ static int doit(pubnub_t* pbp)
         return -1;
     }
 
-    res = signal(pbp, chan);
+    res = signal_trans(pbp, chan);
     if (PNR_OK != res) {
         printf("signal failed, result=%d('%s')\n", res, pubnub_res_2_string(res));
         return -1;

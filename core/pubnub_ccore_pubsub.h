@@ -127,8 +127,8 @@ struct pbcc_context {
             PUBNUB_LOG_ERROR("Error: Request buffer too small - cannot append url literal:\n"\
                              "current_buffer_size = %lu\n"                     \
                              "required_buffer_size = %lu\n",                   \
-                             sizeof (pbc)->http_buf,                           \
-                             (pbc)->http_buf_len + 1 + sizeof(string_literal));\
+                             (unsigned long)(sizeof (pbc)->http_buf),          \
+                             (unsigned long)((pbc)->http_buf_len + 1 + sizeof(string_literal)));\
             return PNR_TX_BUFF_TOO_SMALL;                                      \
         }                                                                      \
         strcpy((pbc)->http_buf + (pbc)->http_buf_len, (string_literal));       \
@@ -208,12 +208,14 @@ struct pbcc_context {
 
 #define APPEND_MESSAGE_BODY_M(pbc, message)                                    \
     if ((message) != NULL) {                                                   \
-        if (strlen(message) > sizeof (pbc)->http_buf - (pbc)->http_buf_len - 2) {\
+        if (pb_strnlen_s(message, PUBNUB_MAX_OBJECT_LENGTH) >                  \
+            sizeof (pbc)->http_buf - (pbc)->http_buf_len - 2) {                \
             PUBNUB_LOG_ERROR("Error: Request buffer too small - cannot pack the message body:\n"\
                              "current_buffer_size = %lu\n"                     \
                              "required_buffer_size = %lu\n",                   \
-                             sizeof (pbc)->http_buf,                           \
-                             (pbc)->http_buf_len + 2 + strlen(message));       \
+                             (unsigned long)(sizeof (pbc)->http_buf),          \
+                             (unsigned long)((pbc)->http_buf_len + 2 + pb_strnlen_s(message,\
+                                                                                    PUBNUB_MAX_OBJECT_LENGTH)));\
             return PNR_TX_BUFF_TOO_SMALL;                                      \
         }                                                                      \
         (pbc)->http_buf[(pbc)->http_buf_len] = '\0';                           \
