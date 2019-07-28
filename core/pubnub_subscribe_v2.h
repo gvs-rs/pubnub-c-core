@@ -105,6 +105,8 @@ struct pubnub_v2_message {
     struct pubnub_char_mem_block payload;
     /** The message metadata, as published */
     struct pubnub_char_mem_block metadata;
+    /** is the message a signal(, or published) */ 
+    bool is_signal;
 };
 
 /** Parse and return the next V2 message, if any.

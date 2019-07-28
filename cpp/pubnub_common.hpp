@@ -24,12 +24,18 @@ extern "C" {
 #include "core/pubnub_crypto.h"
 #endif
 #include "core/pubnub_advanced_history.h"
+#include "core/pubnub_entity_api.h"
 #define MAX_ERROR_MESSAGE_LENGTH 100
+#if PUBNUB_USE_ENTITY_API
+#define MAX_INCLUDE_DIMENSION 100
+#define MAX_ELEM_LENGTH 30
+#endif
 #if PUBNUB_USE_EXTERN_C
 }
 #endif
 
 #include "pubnub_mutex.hpp"
+#include "tribool.hpp"
 
 #include <string>
 #include <cstring>
@@ -228,7 +234,7 @@ public:
         d_.meta = d_mtdt.c_str();
         return *this;
     }
-    publish_options& method(pubnub_publish_method method)
+    publish_options& method(pubnub_method method)
     {
         d_.method = method;
         return *this;
@@ -318,6 +324,93 @@ public:
     pubnub_history_options data() { return d_; }
 };
 
+#if PUBNUB_USE_ENTITY_API
+/** A wrapper class for entity api managing include parameter */
+class include_options {
+    char d_include_c_strings_array[MAX_INCLUDE_DIMENSION][MAX_ELEM_LENGTH + 1];
+    size_t d_include_count;
+    
+public:
+    include_options()
+        : d_include_count(0)
+    {}
+    char const** include_to_c_strings_array(std::vector<std::string> const& inc)
+    {
+        size_t n = inc.size();
+        unsigned i;
+        if (n > MAX_INCLUDE_DIMENSION) {
+            throw std::range_error("include parameter has too many elements.");
+        }
+        for (i = 0; i < n; i++) {
+            if (inc[i].size() > MAX_ELEM_LENGTH) {
+                throw std::range_error("include string element is too long.");
+            }
+            strcpy(d_include_c_strings_array[i], inc[i].c_str());
+        }
+        d_include_count = n;
+        return (char const**)d_include_c_strings_array;
+    }
+    include_options(std::vector<std::string> const& inc)
+    {
+        include_to_c_strings_array(inc);
+    }
+    size_t include_count() { return d_include_count; }
+    char const** include_c_strings_array() { return (char const**)d_include_c_strings_array; }
+};
+    
+/** A wrapper class for entity api paging option parameters, enabling a nicer
+    usage. Something like:
+       pbp.fetch_users(list_options().start(last_bookmark));
+
+    instead of:
+       pbp.fetch_users(nullopt, nullopt, last_bookmark, “”, nullopt);
+  */
+class list_options : public include_options {
+    size_t d_limit;
+    std::string d_start;
+    std::string d_end;
+    tribool d_count;
+
+public:
+    list_options()
+        : d_limit(0)
+        , d_count(tribool::not_set)
+    {}
+    list_options& limit(size_t lim)
+    {
+        d_limit = lim;
+        return *this;
+    }
+    size_t limit() { return d_limit; }
+    list_options& start(std::string const& st)
+    {
+        d_start = st;
+        return *this;
+    }
+    std::string start() { return d_start; }
+    list_options& end(std::string const& e)
+    {
+        d_end = e;
+        return *this;
+    }
+    std::string end() { return d_end; }
+    list_options& count(tribool co)
+    {
+        d_count = co;
+        return *this;
+    }
+    pubnub_tribool count()
+    {
+        if (false == d_count) {
+            return pbccFalse;
+        }
+        else if (true == d_count) {
+            return pbccTrue;
+        }
+        return pbccNotSet;
+    }
+};
+#endif /* PUBNUB_USE_ENTITY_API */    
 
 /** The C++ Pubnub context. It is a wrapper of the Pubnub C context,
  * not a "native" C++ implementation.
@@ -529,36 +622,46 @@ public:
         return doit(pubnub_publish(d_pb, channel.c_str(), message.c_str()));
     }
 
-    /// Publishes a @p message on the @p channel with "extendded"
+    /// Publishes a @p message on the @p channel with "extended"
     /// (full) options.
     futres publish(std::string const& channel,
                    std::string const& message,
                    publish_options    opt)
     {
-        if (message.size() + 1 > sizeof d_message_to_publish) {
+        if (message.size() + 1 > sizeof d_message_to_send) {
             throw std::range_error("string for publish too long");
         }
         lock_guard lck(d_mutex);
         if (!pubnub_can_start_transaction(d_pb)) {
             return futres(d_pb, *this, PNR_IN_PROGRESS);
         }
-        strcpy(d_message_to_publish, message.c_str());
-        return doit(pubnub_publish_ex(d_pb, channel.c_str(), d_message_to_publish, opt.data()));
+        strcpy(d_message_to_send, message.c_str());
+        return doit(pubnub_publish_ex(d_pb, channel.c_str(), d_message_to_send, opt.data()));
     }
 
-    /// Send a signal @p message on the @p channel.
+    /// Sends a signal @p message on the @p channel via chosen @p method.
+    /// (Method GET by default).
     /// @see pubnub_signal
-    futres signal(std::string const& channel, std::string const& message)
+    futres signal(std::string const& channel,
+                  std::string const& message,
+                  pubnub_method method=pubnubSendViaGET)
     {
-        if (message.size() + 1 > sizeof d_message_to_publish) {
-            throw std::range_error("string for signal message too long");
+        if (method != pubnubSendViaGET) {
+            if (message.size() + 1 > sizeof d_message_to_send) {
+                throw std::range_error("string for signal message too long");
+            }
+            lock_guard lck(d_mutex);
+            if (!pubnub_can_start_transaction(d_pb)) {
+                return futres(d_pb, *this, PNR_IN_PROGRESS);
+            }
+            strcpy(d_message_to_send, message.c_str());
         }
-        lock_guard lck(d_mutex);
-        if (!pubnub_can_start_transaction(d_pb)) {
-            return futres(d_pb, *this, PNR_IN_PROGRESS);
-        }
-        strcpy(d_message_to_publish, message.c_str());
-        return doit(pubnub_signal(d_pb, channel.c_str(), d_message_to_publish));
+        return doit(pubnub_signal(d_pb,
+                                  channel.c_str(),
+                                  method,
+                                  (pubnubSendViaGET == method)
+                                  ? message.c_str()
+                                  : d_message_to_send));
     }
     
 #if PUBNUB_CRYPTO_API
@@ -910,6 +1013,238 @@ public:
         return doit(pubnub_list_channel_group(d_pb, channel_group.c_str()));
     }
 
+#if PUBNUB_USE_ENTITY_API
+    /// Starts a transaction for optaining a paginated list of users associated
+    /// with the subscription key.
+    /// @see pubnub_fetch_all_users
+    futres fetch_all_users(list_options& options)
+    {
+        return doit(pubnub_fetch_all_users(
+                        d_pb, 
+                        options.include_c_strings_array(),
+                        options.include_count(),
+                        options.limit(),
+                        (options.start().size() ? options.start().c_str() : NULL),
+                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.count()));
+    }
+
+    /// Starts a transaction that creates a user with the attributes specified in @p user_obj.
+    /// @see pubnub_create_user
+    futres create_user(std::string const& user_obj, std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        if (user_obj.size() + 1 > sizeof d_message_to_send) {
+            throw std::range_error("string 'user_obj' for transaction 'create_user()' too long.");
+        }
+        lock_guard lck(d_mutex);
+        if (!pubnub_can_start_transaction(d_pb)) {
+            return futres(d_pb, *this, PNR_IN_PROGRESS);
+        }
+        strcpy(d_message_to_send, user_obj.c_str());
+        return doit(pubnub_create_user(
+                        d_pb,
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        d_message_to_send));
+    }
+
+    /// Starts a transaction that returns the user object specified by @p user_id.
+    /// @see pubnub_fetch_user
+    futres fetch_user(std::string const& user_id, std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        return doit(pubnub_fetch_user(
+                        d_pb,
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        user_id.c_str()));
+    }
+
+    /// Starts a transaction that updates the user object specified by the `id` key
+    /// of the @p user_obj.
+    /// @see pubnub_update_user
+    futres update_user(std::string const& user_obj, std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        if (user_obj.size() + 1 > sizeof d_message_to_send) {
+            throw std::range_error("string 'user_obj' for transaction 'update_user()' too long.");
+        }
+        lock_guard lck(d_mutex);
+        if (!pubnub_can_start_transaction(d_pb)) {
+            return futres(d_pb, *this, PNR_IN_PROGRESS);
+        }
+        strcpy(d_message_to_send, user_obj.c_str());
+        return doit(pubnub_update_user(
+                        d_pb,
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        d_message_to_send));
+    }
+
+    /// Starts a transaction that deletes the user specified by @p user_id.
+    /// @see pubnub_delete_user
+    futres delete_user(std::string const& user_id)
+    {
+        return doit(pubnub_delete_user(d_pb, user_id.c_str()));
+    }
+
+    /// Starts a transaction that returns the spaces associated with the subscriber key.
+    /// @see pubnub_fetch_all_spaces
+    futres fetch_all_spaces(list_options& options)
+    {
+        return doit(pubnub_fetch_all_spaces(
+                        d_pb, 
+                        options.include_c_strings_array(),
+                        options.include_count(),
+                        options.limit(),
+                        (options.start().size() ? options.start().c_str() : NULL),
+                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.count()));
+    }
+
+    /// Starts a transaction that creates a space with the attributes specified in @p space_obj.
+    /// @see pubnub_create_space
+    futres create_space(std::string const& space_obj, std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        if (space_obj.size() + 1 > sizeof d_message_to_send) {
+            throw std::range_error("string 'space_obj' for transaction 'create_space()' too long.");
+        }
+        lock_guard lck(d_mutex);
+        if (!pubnub_can_start_transaction(d_pb)) {
+            return futres(d_pb, *this, PNR_IN_PROGRESS);
+        }
+        strcpy(d_message_to_send, space_obj.c_str());
+        return doit(pubnub_create_space(
+                        d_pb,
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        d_message_to_send));
+    }
+
+    /// Starts a transaction that returns the space object specified by @p space_id.
+    /// @see pubnub_fetch_space
+    futres fetch_space(std::string const& space_id, std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        return doit(pubnub_fetch_space(
+                        d_pb,
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        space_id.c_str()));
+    }
+
+    /// Starts a transaction that updates the space specified by the `id` property
+    /// of the @p space_obj.
+    /// @see pubnub_update_space
+    futres update_space(std::string const& space_obj, std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        if (space_obj.size() + 1 > sizeof d_message_to_send) {
+            throw std::range_error("string 'space_obj' for transaction 'update_space()' too long.");
+        }
+        lock_guard lck(d_mutex);
+        if (!pubnub_can_start_transaction(d_pb)) {
+            return futres(d_pb, *this, PNR_IN_PROGRESS);
+        }
+        strcpy(d_message_to_send, space_obj.c_str());
+        return doit(pubnub_update_space(
+                        d_pb,
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        d_message_to_send));
+    }
+
+    /// Starts a transaction that deletes the space specified with @p space_id.
+    /// @see pubnub_delete_space
+    futres delete_space(std::string const& space_id)
+    {
+        return doit(pubnub_delete_space(d_pb, space_id.c_str()));
+    }
+
+    /// Starts a transaction that returns the space memberships of the user specified
+    /// by @p user_id.
+    /// @see pubnub_fetch_users_space_memberships
+    futres fetch_users_space_memberships(std::string const& user_id, list_options& options)
+    {
+        return doit(pubnub_fetch_users_space_memberships(
+                        d_pb,
+                        user_id.c_str(),
+                        options.include_c_strings_array(),
+                        options.include_count(),
+                        options.limit(),
+                        (options.start().size() ? options.start().c_str() : NULL),
+                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.count()));
+    }
+
+    /// Starts a transaction that updates the space memberships of the user specified
+    /// by @p user_id.
+    /// @see pubnub_update_users_space_memberships
+    futres update_users_space_memberships(std::string const& user_id,
+                                          std::string const& update_obj,
+                                          std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        if (update_obj.size() + 1 > sizeof d_message_to_send) {
+            throw std::range_error(
+                "string 'update_obj' for transaction 'update_users_space_memberships()' too long.");
+        }
+        lock_guard lck(d_mutex);
+        if (!pubnub_can_start_transaction(d_pb)) {
+            return futres(d_pb, *this, PNR_IN_PROGRESS);
+        }
+        strcpy(d_message_to_send, update_obj.c_str());
+        return doit(pubnub_update_users_space_memberships(
+                        d_pb,
+                        user_id.c_str(),
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        d_message_to_send));
+    }
+
+    /// Starts a transaction that returns all users in the space specified by @p space_id.
+    /// @see pubnub_fetch_members_in_space
+    futres fetch_members_in_space(std::string const& space_id, list_options& options)
+    {
+        return doit(pubnub_fetch_members_in_space(
+                        d_pb,
+                        space_id.c_str(),
+                        options.include_c_strings_array(),
+                        options.include_count(),
+                        options.limit(),
+                        (options.start().size() ? options.start().c_str() : NULL),
+                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.count()));
+    }
+
+    /// Starts a transaction that updates the list of members of the space specified
+    /// by @p space_id.
+    /// @see pubnub_update_members_in_space
+    futres update_members_in_space(std::string const& space_id,
+                                   std::string const& update_obj,
+                                   std::vector<std::string>& include)
+    {
+        include_options inc(include);
+        if (update_obj.size() + 1 > sizeof d_message_to_send) {
+            throw std::range_error(
+                "string 'update_obj' for transaction 'update_members_in_space()' too long.");
+        }
+        lock_guard lck(d_mutex);
+        if (!pubnub_can_start_transaction(d_pb)) {
+            return futres(d_pb, *this, PNR_IN_PROGRESS);
+        }
+        strcpy(d_message_to_send, update_obj.c_str());
+        return doit(pubnub_update_members_in_space(
+                        d_pb,
+                        space_id.c_str(),
+                        inc.include_c_strings_array(),
+                        inc.include_count(),
+                        d_message_to_send));
+    }
+#endif /* PUBNUB_USE_ENTITY_API */
+
     /// Return the HTTP code (result) of the last transaction.
     /// @see pubnub_last_http_code
     int last_http_code() const
@@ -1114,8 +1449,8 @@ private:
     /// The origin set last time (doen't have to be the one used,
     /// the default can be used instead)
     std::string d_origin;
-    /// Buffer for message to be published
-    char d_message_to_publish[PUBNUB_BUF_MAXLEN];
+    /// Buffer for message to be sent( via PATCH, or POST method)
+    char d_message_to_send[PUBNUB_BUF_MAXLEN];
     /// The (C) Pubnub context
     pubnub_t* d_pb;
 };

@@ -2,6 +2,8 @@
 #if !defined INC_PUBNUB_QT
 #define      INC_PUBNUB_QT
 
+#include <stdexcept>
+
 #include <QUrl>
 #include <QUuid>
 #include <QNetworkAccessManager>
@@ -18,10 +20,105 @@ extern "C" {
 #include "core/pubnub_helper.h"
 }
 
+#include "cpp/tribool.hpp"
+
 QT_BEGIN_NAMESPACE
 class QNetworkReply;
 class QSslError;
 QT_END_NAMESPACE
+
+#define MAX_INCLUDE_DIMENSION 100
+#define MAX_ELEM_LENGTH 30
+
+/** A wrapper class for entity api managing include parameter */
+class include_options {
+    char d_include_c_strings_array[MAX_INCLUDE_DIMENSION][MAX_ELEM_LENGTH + 1];
+    size_t d_include_count;
+    
+public:
+    include_options()
+        : d_include_count(0)
+    {}
+    const char** include_to_c_strings_array(QStringList const& inc)
+    {
+        size_t n = inc.size();
+        unsigned i;
+        if (n > MAX_INCLUDE_DIMENSION) {
+            throw std::range_error("include parameter has too many elements.");
+        }
+        for (i = 0; i < n; i++) {
+            if (inc[i].size() > MAX_ELEM_LENGTH) {
+                throw std::range_error("include string element is too long.");
+            }
+            strcpy(d_include_c_strings_array[i], inc[i].toLatin1().data());
+        }
+        d_include_count = n;
+        return (const char**)d_include_c_strings_array;
+    }
+    include_options(QStringList const& inc)
+    {
+        include_to_c_strings_array(inc);
+    }
+    size_t include_count() { return d_include_count; }
+    const char** include_c_strings_array()
+    {
+        return (const char**)d_include_c_strings_array;
+    }
+};
+    
+/** A wrapper class for entity api options for manipulating specified requirements
+    and paged response, enabling a nicer usage. Something like:
+       pbp.fetch_users(list_options().start(last_bookmark));
+
+    instead of:
+       pbp.fetch_users(nullopt, nullopt, last_bookmark, “”, nullopt);
+  */
+using namespace pubnub;
+class list_options : public include_options {
+    size_t d_limit;
+    QString d_start;
+    QString d_end;
+    tribool d_count;
+
+public:
+    list_options()
+        : d_limit(0)
+        , d_count(tribool::not_set)
+    {}
+    list_options& limit(size_t lim)
+    {
+        d_limit = lim;
+        return *this;
+    }
+    size_t limit() { return d_limit; }
+    list_options& start(QString const& st)
+    {
+        d_start = st;
+        return *this;
+    }
+    QString start() { return d_start; }
+    list_options& end(QString const& e)
+    {
+        d_end = e;
+        return *this;
+    }
+    QString end() { return d_end; }
+    list_options& count(tribool co)
+    {
+        d_count = co;
+        return *this;
+    }
+    pubnub_tribool count()
+    {
+        if (false == d_count) {
+            return pbccFalse;
+        }
+        else if (true == d_count) {
+            return pbccTrue;
+        }
+        return pbccNotSet;
+    }
+};
 
 
 struct pbcc_context;
@@ -242,9 +339,9 @@ public:
         return publish_via_post_with_gzip(channel, message.toJson());
     }
 
-    /** Sends a signal @p message (in JSON format) on @p channel via POST method.
-        This actually means "initiate a signal transaction".
-        It has similar behaviour as publish via POST, but unlike publish, signal
+    /** Sends a signal @p message (in JSON format) on @p channel via chosen
+        @p method(GET, or POST). This actually means "initiate a signal transaction".
+        It has similar behaviour as publish, but unlike publish transaction, signal
         erases previous signal message on server(, on a given channel,) and you
         can not send any metadata.
         There can be only up to one signal message at the time. If it's not renewed
@@ -273,10 +370,13 @@ public:
 
         @param channel The string with the channel to signal to.
         @param message The signal message to send, expected to be in JSON format
-
+        @param method The chosen performing method(GET, or POST) for the transaction
+                      (Method GET by default).
         @return #PNR_STARTED on success, an error otherwise
     */
-    pubnub_res signal(QString const &channel, QByteArray const &message);
+    pubnub_res signal(QString const &channel,
+                      QByteArray const &message,
+                      pubnub_method method=pubnubSendViaGET);
     
     /** Subscribe to @p channel and/or @p channel_group. This actually
         means "initiate a subscribe operation/transaction". The outcome
@@ -793,6 +893,470 @@ public:
     */
     pubnub_res list_channel_group(QString const& channel_group);
 
+#if PUBNUB_USE_ENTITY_API
+    /** Initiates a transaction that returns a paginated list of users
+        associated with the subscription key, optionally including each
+        record's custom data object.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+
+        @param options options for manipulating specified requirements
+                       and paginated response
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res fetch_all_users(list_options& options);
+
+    /** Initiates a transaction for creating a user with the attributes specified in
+        @p user_obj.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the created user object, optionally including the user's custom data object.
+
+        @note User ID and name are required properties in the @p user_obj
+        @param user_obj The JSON string with the definition of the User
+                        Object to create.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res create_user(QByteArray const& user_obj, QStringList& include);
+
+    /** Initiates a transaction for creating a user with the attributes specified in
+        @p user_obj.
+        Function receives 'Qt Json' document.
+        Helpful if you're already using Qt support for Json in your code, ensuring message
+        you're sending is valid Json, unlike the case when applying the function that receives
+        byte array and doesn't check whether those bytes represent sound Json.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the created user object, optionally including the user's custom data object.
+
+        @note User ID and name are required properties in the @p user_obj
+        @param user_obj The JSON string with the definition of the User
+                        Object to create.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res create_user(QJsonDocument const& user_obj, QStringList& include) {
+        return create_user(user_obj.toJson(), include);
+    }
+    
+    /** Initiates transaction that returns the user object specified with @p user_id,
+        optionally including the user's custom data object.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the created user object, optionally including the user's custom data object.
+
+        @param user_id The User ID for which to retrieve the user object.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res fetch_user(QString const& user_id, QStringList& include);
+
+    /** Initiates trnsaction that updates the user object specified with the `id` key
+        of the @p user_obj with any new information you provide.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the updated user object, optionally including the user's custom data object.
+
+        @note User ID and name are required properties in the @p user_obj
+        @param user_obj The JSON string with the definition of the User
+                        Object to create.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_user(QByteArray const& user_obj, QStringList& include);
+
+    /** Initiates trnsaction that updates the user object specified with the `id` key
+        of the @p user_obj with any new information you provide.
+        Function receives 'Qt Json' document.
+        Helpful if you're already using Qt support for Json in your code, ensuring message
+        you're sending is valid Json, unlike the case when applying the function that receives
+        byte array and doesn't check whether those bytes represent sound Json.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the updated user object, optionally including the user's custom data object.
+
+        @note User ID and name are required properties in the @p user_obj
+        @param user_obj The JSON string with the definition of the User
+                        Object to create.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_user(QJsonDocument const& user_obj, QStringList& include) {
+        return update_user(user_obj.toJson(), include);
+    }
+
+    /** Initiates transaction that deletes the user specified with @p user_id.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+
+        @param user_id The User ID.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res delete_user(QString const& user_id);
+
+    /** Initiates transaction that returns the spaces associated with the subscriber key,
+        optionally including each space's custom data object.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+
+        @param options options for manipulating specified requirements
+                       and paginated response
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res fetch_all_spaces(list_options& options);
+
+    /** Initiates transaction that creates a space with the attributes specified
+        in @p space_obj.
+        @note Space ID and name are required properties of @p space_obj
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the created space object, optionally including its custom data object.
+
+        @param space_obj The JSON string with the definition of the Space Object to create.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res create_space(QByteArray const& space_obj, QStringList& include);
+
+    /** Initiates transaction that creates a space with the attributes specified
+        in @p space_obj.
+        @note Space ID and name are required properties of @p space_obj
+
+        Function receives 'Qt Json' document.
+        Helpful if you're already using Qt support for Json in your code, ensuring message
+        you're sending is valid Json, unlike the case when applying the function that
+        receives byte array and doesn't check whether those bytes represent sound Json.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the created space object, optionally including its custom data object.
+
+        @param space_obj The JSON string with the definition of the Space Object to create.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res create_space(QJsonDocument const& space_obj, QStringList& include) {
+        return create_space(space_obj.toJson(), include);
+    }
+
+    /** Initiates transaction that returns the space object specified with @p space_id,
+        optionally including its custom data object.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+
+        @param space_id The Space ID for which to retrieve the space object.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res fetch_space(QString const& space_id, QStringList& include);
+
+    /** Initiates transaction that updates the space specified by the `id` property
+        of the @p space_obj.
+        @note Space ID and name are required properties of @p space_obj
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the space object, optionally including its custom data object.
+
+        @param space_obj The JSON string with the description of the Space Object to update.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_space(QByteArray const& space_obj, QStringList& include);
+
+    /** Initiates transaction that updates the space specified by the `id` property
+        of the @p space_obj.
+        @note Space ID and name are required properties of @p space_obj
+
+        Function receives 'Qt Json' document.
+        Helpful if you're already using Qt support for Json in your code, ensuring message
+        you're sending is valid Json, unlike the case when applying the function that
+        receives byte array and doesn't check whether those bytes represent sound Json.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the space object, optionally including its custom data object.
+
+        @param space_obj The JSON string with the description of the Space Object to update.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_space(QJsonDocument const& space_obj, QStringList& include) {
+        return update_space(space_obj.toJson(), include);
+    }
+
+    /** Initiates transaction that deletes the space specified with @p space_id.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+
+        @param space_id The Space ID.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res delete_space(QString const& space_id);
+
+    /** Initiates transaction that returns the space memberships of the user specified
+        by @p user_id, optionally including the custom data objects for...
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+
+        @param user_id The User ID for which to retrieve the space memberships for.
+        @param options options for manipulating specified requirements
+                       and paginated response
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res fetch_users_space_memberships(QString const& user_id, list_options& options);
+
+    /** Initiates transaction that updates the space memberships of the user specified
+        by @p user_id. Use the `add`, `update`, and `remove` properties in the
+        @p update_obj to perform those operations on one, or more memberships.
+        An example for @update_obj:
+        {
+          "add": [
+            {
+              "id": "my-channel"
+            }
+          ],
+          "update": [
+            {
+              "id": "main",
+              "custom": {
+                "starred": true
+              }
+            }
+          ],
+          "remove": [
+            {
+              "id": "space-0"
+            }
+          ]
+        }
+    
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the user's space memberships, optionally including the custom data objects.
+
+        @param user_id The User ID for which to update the space memberships for.
+        @param update_obj The JSON object that defines the updates to perform.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_users_space_memberships(QString const& user_id,
+                                              QByteArray const& update_obj,
+                                              QStringList& include);
+
+    /** Initiates transaction that updates the space memberships of the user specified
+        by @p user_id. Use the `add`, `update`, and `remove` properties in the
+        @p update_obj to perform those operations on one, or more memberships.
+        An example for @update_obj:
+        {
+          "add": [
+            {
+              "id": "my-channel"
+            }
+          ],
+          "update": [
+            {
+              "id": "main",
+              "custom": {
+                "starred": true
+              }
+            }
+          ],
+          "remove": [
+            {
+              "id": "space-0"
+            }
+          ]
+        }
+
+        Function receives 'Qt Json' document.
+        Helpful if you're already using Qt support for Json in your code, ensuring message
+        you're sending is valid Json, unlike the case when applying the function that
+        receives byte array and doesn't check whether those bytes represent sound Json.
+    
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the user's space memberships, optionally including the custom data objects.
+
+        @param user_id The User ID for which to update the space memberships for.
+        @param update_obj The JSON object that defines the updates to perform.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_users_space_memberships(QString const& user_id,
+                                              QJsonDocument const& update_obj,
+                                              QStringList& include) {
+        return update_users_space_memberships(user_id,
+                                              update_obj.toJson(),
+                                              include);
+    }
+
+    /** Initiates transaction that returns all users in the space specified by @p space_id,
+        optionally including the custom data objects for...
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+
+        @param space_id The Space ID for which to retrieve all users in the space.
+        @param options options for manipulating specified requirements
+                       and paginated response
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res fetch_members_in_space(QString const& space_id, list_options& options);
+
+    /** Initiates transaction that updates the list of members of the space specified by
+        @p space_id. Use the `add`, `update`, and `remove` properties in the @p update_obj
+        to perform those operations on one or more memberships.
+        An example for @update_obj:
+        {
+          "add": [
+            {
+              "id": "user-1"
+            }
+          ],
+          "update": [
+            {
+              "id": "user-2",
+              "custom": {
+                "role": “moderator”
+              }
+            }
+          ],
+          "remove": [
+            {
+              "id": "user-0"
+            }
+          ]
+        }
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the spaces's memberships, optionally including the custom data objects for...
+
+        @param space_id The Space ID for which to update the list of members in the space.
+        @param update_obj The JSON object that defines the updates to perform.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_members_in_space(QString const& space_id,
+                                       QByteArray const& update_obj,
+                                       QStringList& include);
+
+    /** Initiates transaction that updates the list of members of the space specified by
+        @p space_id. Use the `add`, `update`, and `remove` properties in the @p update_obj
+        to perform those operations on one or more memberships.
+        An example for @update_obj:
+        {
+          "add": [
+            {
+              "id": "user-1"
+            }
+          ],
+          "update": [
+            {
+              "id": "user-2",
+              "custom": {
+                "role": “moderator”
+              }
+            }
+          ],
+          "remove": [
+            {
+              "id": "user-0"
+            }
+          ]
+        }
+
+        Function receives 'Qt Json' document.
+        Helpful if you're already using Qt support for Json in your code, ensuring message
+        you're sending is valid Json, unlike the case when applying the function that
+        receives byte array and doesn't check whether those bytes represent sound Json.
+
+        If transaction is successful, the response(a JSON object) will
+        always have key:
+        - "status": with two possible values "ok" and "error"
+        Complete answer will be available via pubnub_get().
+        Contains the spaces's memberships, optionally including the custom data objects for...
+
+        @param space_id The Space ID for which to update the list of members in the space.
+        @param update_obj The JSON object that defines the updates to perform.
+        @param include list with additional/complex attributes to include in response.
+                       Use empty list if you don't want to retrieve additional attributes.
+        @return #PNR_STARTED on success, an error otherwise
+      */
+    pubnub_res update_members_in_space(QString const& space_id,
+                                       QJsonDocument const& update_obj,
+                                       QStringList& include) {
+        return update_members_in_space(space_id,
+                                       update_obj.toJson(),
+                                       include);
+    }
+#endif /* PUBNUB_USE_ENTITY_API */
+    
     /** Returns the HTTP code of the last transaction. If the
      *  transaction was succesfull, will return 0.
      */
@@ -923,11 +1487,11 @@ private:
     /// To Keep-Alive or not to Keep-Alive
     bool d_use_http_keep_alive;
 
-    ///  publish transaction method
-    enum pubnub_publish_method d_publish_method;
+    ///  transaction method(GET, POST, PATCH, or DELETE)
+    enum pubnub_method d_method;
 
-    /// Message to publish via POST method
-    QByteArray d_message_to_publish;
+    /// Message to send via POST method
+    QByteArray d_message_to_send;
 
     mutable QMutex d_mutex;
 };

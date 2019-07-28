@@ -43,6 +43,10 @@
 #define PUBNUB_USE_ADVANCED_HISTORY 0
 #endif
 
+#if !defined(PUBNUB_USE_ENTITY_API)
+#define PUBNUB_USE_ENTITY_API 0
+#endif
+
 #if !defined(PUBNUB_PROXY_API)
 #define PUBNUB_PROXY_API 0
 #elif PUBNUB_PROXY_API
@@ -71,6 +75,8 @@
 #include <time.h>
 #endif
 
+/* Maximum object length that will be sent via PATCH, or POST methods */
+#define PUBNUB_MAX_OBJECT_LENGTH 30000
 
 /** State of a Pubnub socket. Some states are specific to some
     PALs.
@@ -203,11 +209,6 @@ struct pubnub_flags {
         renewed without losing transaction at hand.
      */
     bool started_while_kept_alive : 1;
-
-    /** Indicates whether to send the message in http message body, or if not,
-        encoded 'via GET'(, or maybe some third method).
-      */
-    bool is_publish_via_post : 1;
 };
 
 #if PUBNUB_CHANGE_DNS_SERVERS
@@ -310,6 +311,12 @@ struct pubnub_ {
 
     struct pubnub_flags flags;
 
+    /** Indicates whether to send the message in http message body(POST, or PATCH),
+        or if not, encoded 'via GET'(, or maybe some other method).
+        Takes values from enum 'pubnub_method' defined in 'pubnub_api_types.h'.
+      */
+    uint8_t method;
+    
 #if PUBNUB_ADVANCED_KEEP_ALIVE
     struct pubnub_keep_alive_data {
         time_t   timeout;
