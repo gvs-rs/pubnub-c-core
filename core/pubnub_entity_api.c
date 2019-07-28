@@ -18,17 +18,18 @@
 #define FORM_THE_OBJECT(pb, function_name_literal, obj_buffer, key_literal,json)  \
 do {                                                                              \
     if (sizeof(obj_buffer) <                                                      \
-        sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1) {  \
+        sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1) { \
         PUBNUB_LOG_ERROR(function_name_literal "(pb=%p) - "                       \
                          "buffer size is too small: "                             \
                          "current_buffer_size = %lu\n"                            \
                          "required_buffer_size = %lu\n",                          \
                          (pb),                                                    \
-                         sizeof(obj_buffer),                                      \
-                         sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH));\
+                         (unsigned long)sizeof(obj_buffer),                       \
+                         (unsigned long)(sizeof(key_literal) +                    \
+                                         pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH))); \
         return PNR_TX_BUFF_TOO_SMALL;                                             \
     }                                                                             \
-    snprintf(obj_buffer, sizeof(obj_buffer), "%s%s%c", key_literal, json, '}');    \
+    snprintf(obj_buffer, sizeof(obj_buffer), "%s%s%c", key_literal, json, '}');   \
     json = (obj_buffer);                                                          \
 } while(0)
 
