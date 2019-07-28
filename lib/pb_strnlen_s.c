@@ -3,7 +3,7 @@
 
 size_t pb_strnlen_s(const char *str, size_t strsz)
 {
-    unsigned i;
+    size_t i;
 
     if (NULL == str) {
         return 0;

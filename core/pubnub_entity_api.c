@@ -15,20 +15,20 @@
 #include <ctype.h>
 #include <string.h>
 
-#define FORM_THE_OBJECT(pb, function_name_literal, obj_buffer, key_literal, json) \
+#define FORM_THE_OBJECT(pb, function_name_literal, obj_buffer, json) \
 do {                                                                              \
-    if (sizeof obj_buffer < sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1) {\
+    if (sizeof(obj_buffer) <                                                      \
+        strlen(obj_buffer) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 2) {  \
         PUBNUB_LOG_ERROR(function_name_literal "(pb=%p) - "                       \
                          "buffer size is too small: "                             \
                          "current_buffer_size = %lu\n"                            \
                          "required_buffer_size = %lu\n",                          \
                          (pb),                                                    \
                          sizeof(obj_buffer),                                      \
-                         sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1);\
+                         strlen(obj_buffer) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1);\
         return PNR_TX_BUFF_TOO_SMALL;                                             \
     }                                                                             \
-    strcat((obj_buffer), (json));                                                 \
-    strcat((obj_buffer), "}");                                                    \
+    snprintf(obj_buffer, sizeof(obj_buffer), "%s%s%c", obj_buffer, json, '}');    \
     json = (obj_buffer);                                                          \
 } while(0)
 
@@ -414,7 +414,6 @@ enum pubnub_res pubnub_add_users_space_memberships(pubnub_t* pb,
     FORM_THE_OBJECT(pb,
                     "pubnub_add_users_space_memberships",
                     obj_buffer,
-                    "{\"add\":",
                     update_obj);
 #if PUBNUB_USE_GZIP_COMPRESSION
     pb->core.gzip_msg_len = 0;
@@ -460,7 +459,6 @@ enum pubnub_res pubnub_update_users_space_memberships(pubnub_t* pb,
     FORM_THE_OBJECT(pb,
                     "pubnub_update_users_space_memberships",
                     obj_buffer,
-                    "{\"update\":",
                     update_obj);
 #if PUBNUB_USE_GZIP_COMPRESSION
     pb->core.gzip_msg_len = 0;
@@ -506,7 +504,6 @@ enum pubnub_res pubnub_remove_users_space_memberships(pubnub_t* pb,
     FORM_THE_OBJECT(pb,
                     "pubnub_remove_users_space_memberships",
                     obj_buffer,
-                    "{\"remove\":",
                     update_obj);
 #if PUBNUB_USE_GZIP_COMPRESSION
     pb->core.gzip_msg_len = 0;
@@ -591,7 +588,6 @@ enum pubnub_res pubnub_add_members_in_space(pubnub_t* pb,
     FORM_THE_OBJECT(pb,
                     "pubnub_add_members_in_space",
                     obj_buffer,
-                    "{\"add\":",
                     update_obj);
 #if PUBNUB_USE_GZIP_COMPRESSION
     pb->core.gzip_msg_len = 0;
@@ -637,7 +633,6 @@ enum pubnub_res pubnub_update_members_in_space(pubnub_t* pb,
     FORM_THE_OBJECT(pb,
                     "pubnub_update_members_in_space",
                     obj_buffer,
-                    "{\"update\":",
                     update_obj);
 #if PUBNUB_USE_GZIP_COMPRESSION
     pb->core.gzip_msg_len = 0;
@@ -683,7 +678,6 @@ enum pubnub_res pubnub_remove_members_in_space(pubnub_t* pb,
     FORM_THE_OBJECT(pb,
                     "pubnub_remove_members_in_space",
                     obj_buffer,
-                    "{\"remove\":",
                     update_obj);
 #if PUBNUB_USE_GZIP_COMPRESSION
     pb->core.gzip_msg_len = 0;
