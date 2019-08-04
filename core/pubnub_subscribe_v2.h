@@ -6,6 +6,7 @@
 
 #include "pubnub_api_types.h"
 #include "pubnub_memory_block.h"
+#include "pbcc_subscribe_v2.h"
 
 
 #if !PUBNUB_USE_SUBSCRIBE_V2
@@ -41,7 +42,7 @@ struct pubnub_subscribe_v2_options {
         be received, otherwise, it will be skipped (as if not
         published). Syntax is not trivial, but can be described as
         mostly Javascript on the metadata (which is JSON, thus,
-        "integrates well" wtih Javascript). For example, if your
+        "integrates well" with Javascript). For example, if your
         metadata is: `{"zec":3}`, then this filter _would_ match it:
         `zec==3`, while `zec==4` would _not_.
 
@@ -78,36 +79,6 @@ enum pubnub_res pubnub_subscribe_v2(pubnub_t*                          p,
                                     const char*                        channel,
                                     struct pubnub_subscribe_v2_options opts);
 
-
-/** Pubnub V2 message has lots of data and here's how we express them
-    for the pubnub_get_v2().
-
-    The "string fields" are expressed as "Pascal strings", that is, a
-    pointer with string length, and _don't_ include a NUL character.
-    Also, these pointers are actually pointing into the full received
-    message, so, their lifetime is tied to the message lifetime and
-    any subsequent transaction on the same context will invalidate
-    them.
-
-*/
-struct pubnub_v2_message {
-    /** The time token of the message - when it was published. */
-    struct pubnub_char_mem_block tt;
-    /** Region of the message - not interesting in most cases */
-    int region;
-    /** Message flags */
-    int flags;
-    /** Channel that message was published to */
-    struct pubnub_char_mem_block channel;
-    /** Subscription match or the channel group */
-    struct pubnub_char_mem_block match_or_group;
-    /** The message itself */
-    struct pubnub_char_mem_block payload;
-    /** The message metadata, as published */
-    struct pubnub_char_mem_block metadata;
-    /** is the message a signal(, or published) */ 
-    bool is_signal;
-};
 
 /** Parse and return the next V2 message, if any.
 

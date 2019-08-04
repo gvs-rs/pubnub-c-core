@@ -246,13 +246,9 @@ static PFpbcc_parse_response_T m_aParseResponse[] = { dont_parse,
     pbcc_parse_presence_response /* PBTT_HEARTBEAT */
 #if PUBNUB_USE_SUBSCRIBE_V2
     , pbcc_parse_subscribe_v2_response /* PBTT_SUBSCRIBE_V2 */
-#else
-    , dont_parse /* PBTT_SUBSCRIBE_V2 */
 #endif
 #if PUBNUB_USE_ADVANCED_HISTORY
     , pbcc_parse_message_counts_response /* PBTT_MESSAGE_COUNTS */
-#else
-    , dont_parse /* PBTT_MESSAGE_COUNTS */
 #endif
 #if PUBNUB_USE_ENTITY_API
     , pbcc_parse_entity_api_response /* PBTT_FETCH_ALL_USERS */
