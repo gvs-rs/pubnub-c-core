@@ -39,7 +39,9 @@ extern "C" {
 
 #include "pubnub_mutex.hpp"
 #include "tribool.hpp"
+#if PUBNUB_USE_SUBSCRIBE_V2
 #include "pubnub_v2_message.hpp"
+#endif
 
 #include <string>
 #include <cstring>

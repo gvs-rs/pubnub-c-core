@@ -24,7 +24,9 @@ extern "C" {
 }
 
 #include "cpp/tribool.hpp"
+#if PUBNUB_USE_SUBSCRIBE_V2
 #include "cpp/pubnub_v2_message.hpp"
+#endif
 
 QT_BEGIN_NAMESPACE
 class QNetworkReply;
@@ -168,7 +170,6 @@ public:
         return d_filter_expr.empty() ? 0 : d_filter_expr.c_str();
     }
 };
-
 #endif /* PUBNUB_USE_SUBSCRIBE_V2 */
 
 
