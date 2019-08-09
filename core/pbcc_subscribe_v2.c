@@ -97,9 +97,9 @@ enum pubnub_res pbcc_parse_subscribe_v2_response(struct pbcc_context* p)
             }
             if (len >= sizeof p->timetoken) {
                 PUBNUB_LOG_ERROR(
-                    "Time token in response, length %zu, longer than max %zu\n",
-                    len,
-                    sizeof p->timetoken - 1);
+                    "Time token in response, length %lu, longer than max %lu\n",
+                    (unsigned long)len,
+                    (unsigned long)(sizeof p->timetoken - 1));
                 return PNR_FORMAT_ERROR;
             }
 
