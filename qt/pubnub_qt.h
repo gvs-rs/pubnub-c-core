@@ -302,7 +302,7 @@ public:
 
         Subsequent call to this function will return the next message (if
         any). All messages are from the channel(s) the operation was for.
-        Weather, or not message is empty can be checked through class member
+        Whather or not message is empty can be checked through class member
         function is_empty().
         @see pubnub_v2_message.hpp
 
@@ -516,7 +516,7 @@ public:
     pubnub_res subscribe_v2(QString const &channel, subscribe_v2_options opt);
 
     /** A helper method to subscribe_v2 to several channels and/or channel groups
-     * by giving a (string) list of channels and passing sutable options.
+     * by giving a (string) list of channels and passing suitable options.
      */
     pubnub_res subscribe_v2(QStringList const &channel, subscribe_v2_options opt) {
         return subscribe_v2(channel.join(","), opt);

@@ -36,7 +36,7 @@ static enum pubnub_res signal_trans(pubnub_t* pbp, char const* chan)
     puts("------------------");
     puts("Signal");
     puts("------------------");
-    res = pubnub_signal(pbp, chan, pubnubSendViaGET, "\"Signal world from sync w/meta\"");
+    res = pubnub_signal(pbp, chan, pubnubSendViaGET, "\"Signal world - sync w/meta\"");
     if (PNR_STARTED == res) {
         res = pubnub_await(pbp);
     }

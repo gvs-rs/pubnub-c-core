@@ -112,9 +112,7 @@ enum pubnub_res pbcc_parse_subscribe_v2_response(struct pbcc_context* p)
             return PNR_FORMAT_ERROR;
         }
         if (jonmpOK == pbjson_get_object_value(&found, "r", &titel)) {
-            char s[20];
-            pbjson_element_strcpy(&titel, s, sizeof s);
-            p->region = strtol(s, NULL, 0);
+            p->region = strtol(titel.start, NULL, 0);
         }
         else {
             PUBNUB_LOG_ERROR(
