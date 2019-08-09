@@ -39,6 +39,7 @@ extern "C" {
 
 #include "pubnub_mutex.hpp"
 #include "tribool.hpp"
+#include "pubnub_v2_message.hpp"
 
 #include <string>
 #include <cstring>
@@ -237,25 +238,6 @@ public:
         return *this;
     }
     pubnub_subscribe_v2_options data() { return d_; }
-};
-
-class v2_message {
-    struct pubnub_v2_message d_;
-
-public:
-    v2_message(pubnub_t* pb) { d_ = pubnub_get_v2(pb); }
-    v2_message() { memset(&d_, 0, sizeof(struct pubnub_v2_message)); }
-    std::string get_tt() { return std::string(d_.tt.ptr, d_.tt.size); }
-    int get_region() { return d_.region; }
-    int get_flags() { return d_.flags; }
-    std::string get_channel() { return std::string(d_.channel.ptr, d_.channel.size); } 
-    std::string get_match_or_group()
-    {
-        return std::string(d_.match_or_group.ptr, d_.match_or_group.size);
-    } 
-    std::string get_payload() { return std::string(d_.payload.ptr, d_.payload.size); } 
-    std::string get_metadata() { return std::string(d_.metadata.ptr, d_.metadata.size); } 
-    bool is_signal() { return d_.is_signal; }
 };
 #endif /* PUBNUB_USE_SUBSCRIBE_V2 */
 
@@ -610,20 +592,20 @@ public:
 
 #if PUBNUB_USE_SUBSCRIBE_V2
     /// Returns the next v2 message from the context. If there are
-    /// none, returns an empty message structure(memset to zeros). 
+    /// none, returns an empty message structure(checked through
+    /// v2_mesage::is_empty()). 
     /// @see pubnub_get_v2
     v2_message get_v2() const
     {
-        return v2_message(d_pb);
+        return v2_message(pubnub_get_v2(d_pb));
     }
     /// Returns a vector of all v2 messages from the context.
     std::vector<v2_message> get_all_v2() const
     {
         std::vector<v2_message> all;
-        v2_message empty;
         v2_message msg = get_v2();
 
-        while (memcmp(&msg, (const void*)&empty, sizeof(v2_message)) != 0) {
+        while (!msg.is_empty()) {
             all.push_back(msg);
             msg = get_v2();
         }
@@ -796,7 +778,7 @@ public:
 
 #if PUBNUB_USE_SUBSCRIBE_V2
     /// V2 subscribes to @p channel with "extended" (full) options
-    /// @see pubnub_subscribe_ex
+    /// @see pubnub_subscribe_v2
     futres subscribe_v2(std::string const& channel, subscribe_v2_options opt)
     {
         char const* ch = channel.empty() ? 0 : channel.c_str();

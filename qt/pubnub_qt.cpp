@@ -207,17 +207,16 @@ QStringList pubnub_qt::get_all() const
 v2_message pubnub_qt::get_v2() const
 {
     KEEP_THREAD_SAFE();
-    return v2_message(d_context.data());
+    return v2_message(pbcc_get_msg_v2(d_context.data()));
 }
 
 
 QVector<v2_message> pubnub_qt::get_all_v2() const
 {
     QVector<v2_message> all;
-    v2_message empty;
     v2_message msg = get_v2();
 
-    while (memcmp(&msg, (const void*)&empty, sizeof(v2_message)) != 0) {
+    while (!msg.is_empty()) {
         all.append(msg);
         msg = get_v2();
     }
@@ -349,10 +348,8 @@ pubnub_res pubnub_qt::signal(QString const& channel,
         d_method = method;
     }
     else {
-        d_message_to_send = pack_message_to_gzip(message);
-        d_method = (d_message_to_send.size() != message.size())
-                   ? pubnubSendViaPOSTwithGZIP
-                   : pubnubSendViaPOST;
+        d_message_to_send = message;
+        d_method = pubnubSendViaPOST;
     }
     return startRequest(pbcc_signal_prep(d_context.data(),
                                          channel.toLatin1().data(),

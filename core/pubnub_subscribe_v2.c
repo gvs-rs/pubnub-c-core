@@ -1,13 +1,14 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
 #include "pubnub_internal.h"
 
+#include "pubnub_subscribe_v2.h"
+#include "pbcc_subscribe_v2.h"
 #include "pubnub_ccore_pubsub.h"
 #include "pubnub_netcore.h"
 #include "pubnub_assert.h"
 #include "pubnub_log.h"
 #include "pubnub_version.h"
 #include "pubnub_json_parse.h"
-#include "pubnub_subscribe_v2.h"
 
 #include "pbpal.h"
 

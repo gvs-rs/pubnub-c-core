@@ -9,6 +9,9 @@
 #include "core/pubnub_version.h"
 #include "core/pubnub_version_internal.h"
 #include "core/pubnub_helper.h"
+#if PUBNUB_USE_SUBSCRIBE_V2
+#include "core/pbcc_subscribe_v2.h"
+#endif
 #if PUBNUB_USE_ADVANCED_HISTORY
 #include "core/pbcc_advanced_history.h"
 #endif

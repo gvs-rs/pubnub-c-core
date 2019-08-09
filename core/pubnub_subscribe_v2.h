@@ -5,14 +5,12 @@
 #include "pubnub_config.h"
 
 #include "pubnub_api_types.h"
-#include "pubnub_memory_block.h"
-#include "pbcc_subscribe_v2.h"
-
 
 #if !PUBNUB_USE_SUBSCRIBE_V2
 #error To use the subscribe V2 API you must define PUBNUB_USE_SUBSCRIBE_V2=1
 #endif
 
+#include "pubnub_subscribe_v2_message.h"
 
 /** @file pubnub_subscribe_v2.h
 
@@ -86,9 +84,8 @@ enum pubnub_res pubnub_subscribe_v2(pubnub_t*                          p,
     message in JSON, but, then you'll have to parse it yourself, and
     pubnub_channel() and pubnub_channel_group() would not work.
 
-    If there are no more messages, this will return a struct "memset
-    to zero". Since message must have the payload, the fail safe
-    way of checking is:
+    If there are no more messages, this will return an empty message v2 structure.
+    Since message must have the payload, the fail-safe way of checking is:
 
         v2msg = pubnub_get_v2(pbp);
         if (NULL == v2msg.payload.ptr) {

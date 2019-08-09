@@ -24,6 +24,7 @@ extern "C" {
 }
 
 #include "cpp/tribool.hpp"
+#include "cpp/pubnub_v2_message.hpp"
 
 QT_BEGIN_NAMESPACE
 class QNetworkReply;
@@ -168,24 +169,6 @@ public:
     }
 };
 
-class v2_message {
-    struct pubnub_v2_message d_;
-
-public:
-    v2_message(struct pbcc_context* p) { d_ = pbcc_get_msg_v2(p); }
-    v2_message() { memset(&d_, 0, sizeof(struct pubnub_v2_message)); }
-    std::string get_tt() { return std::string(d_.tt.ptr, d_.tt.size); }
-    int get_region() { return d_.region; }
-    int get_flags() { return d_.flags; }
-    std::string get_channel() { return std::string(d_.channel.ptr, d_.channel.size); } 
-    std::string get_match_or_group()
-    {
-        return std::string(d_.match_or_group.ptr, d_.match_or_group.size);
-    } 
-    std::string get_payload() { return std::string(d_.payload.ptr, d_.payload.size); } 
-    std::string get_metadata() { return std::string(d_.metadata.ptr, d_.metadata.size); } 
-    bool is_signal() { return d_.is_signal; }
-};
 #endif /* PUBNUB_USE_SUBSCRIBE_V2 */
 
 
@@ -318,6 +301,9 @@ public:
 
         Subsequent call to this function will return the next message (if
         any). All messages are from the channel(s) the operation was for.
+        Weather, or not message is empty can be checked through class member
+        function is_empty().
+        @see pubnub_v2_message.hpp
 
         @note Context doesn't keep track of the channel(s) you subscribed(v2)
         to. This is a memory saving design decision, as most users won't
