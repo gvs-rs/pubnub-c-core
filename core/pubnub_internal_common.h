@@ -248,6 +248,7 @@ struct pubnub_multi_addresses {
 };
 #endif /* PUBNUB_USE_MULTIPLE_ADDRESSES */
 
+
 /** The Pubnub context
 
     @note Don't declare any members as `bool`, as there may be
@@ -490,14 +491,6 @@ pubnub_t* pballoc_get_ctx(unsigned idx);
 /** Internal function, the "bottom half" of pubnub_free(), which is
     done asynchronously in the callback mode. */
 void pballoc_free_at_last(pubnub_t* pb);
-
-
-/**  Parses subscribe V2 response from Pubnub.
-
-     @todo Should probably find a better place for this
-     declaration...
-*/
-enum pubnub_res pbcc_parse_subscribe_v2_response(struct pbcc_context* p);
 
 
 #endif /* !defined INC_PUBNUB_INTERNAL_COMMON */

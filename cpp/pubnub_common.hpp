@@ -20,13 +20,16 @@ extern "C" {
 #if PUBNUB_PROXY_API
 #include "core/pubnub_proxy.h"
 #endif
+#if PUBNUB_USE_SUBSCRIBE_V2
+#include "core/pubnub_subscribe_v2.h"
+#endif
 #if PUBNUB_CRYPTO_API
 #include "core/pubnub_crypto.h"
 #endif
 #include "core/pubnub_advanced_history.h"
-#include "core/pubnub_entity_api.h"
 #define MAX_ERROR_MESSAGE_LENGTH 100
 #if PUBNUB_USE_ENTITY_API
+#include "core/pubnub_entity_api.h"
 #define MAX_INCLUDE_DIMENSION 100
 #define MAX_ELEM_LENGTH 30
 #endif
@@ -36,6 +39,9 @@ extern "C" {
 
 #include "pubnub_mutex.hpp"
 #include "tribool.hpp"
+#if PUBNUB_USE_SUBSCRIBE_V2
+#include "pubnub_v2_message.hpp"
+#endif
 
 #include <string>
 #include <cstring>
@@ -198,6 +204,44 @@ public:
     pubnub_subscribe_options data() { return d_; }
 };
 
+
+#if PUBNUB_USE_SUBSCRIBE_V2
+/** A wrapper class for subscribe_v2 options, enabling a nicer
+    usage. Something like:
+
+        pn.subscribe(chan, subscribe_v2_options().heartbeat(412));
+*/
+class subscribe_v2_options {
+    pubnub_subscribe_v2_options d_;
+    std::string d_chgrp;
+    std::string d_filter_expr;
+    
+public:
+    subscribe_v2_options() { d_ = pubnub_subscribe_v2_defopts(); }
+    subscribe_v2_options& channel_group(std::string const& chgroup)
+    {
+        d_chgrp          = chgroup;
+        d_.channel_group = d_chgrp.empty() ? 0 : d_chgrp.c_str();
+        return *this;
+    }
+    subscribe_v2_options& channel_group(std::vector<std::string> const& chgroup)
+    {
+        return channel_group(join(chgroup));
+    }
+    subscribe_v2_options& heartbeat(unsigned hb_interval)
+    {
+        d_.heartbeat = hb_interval;
+        return *this;
+    }
+    subscribe_v2_options& filter_expr(std::string const& filter_exp)
+    {
+        d_filter_expr = filter_exp;
+        d_.filter_expr = d_filter_expr.empty() ? 0 : d_filter_expr.c_str();
+        return *this;
+    }
+    pubnub_subscribe_v2_options data() { return d_; }
+};
+#endif /* PUBNUB_USE_SUBSCRIBE_V2 */
 
 /** A wrapper class for publish options, enabling a nicer
     usage. Something like:
@@ -548,6 +592,29 @@ public:
         return all;
     }
 
+#if PUBNUB_USE_SUBSCRIBE_V2
+    /// Returns the next v2 message from the context. If there are
+    /// none, returns an empty message structure(checked through
+    /// v2_mesage::is_empty()). 
+    /// @see pubnub_get_v2
+    v2_message get_v2() const
+    {
+        return v2_message(pubnub_get_v2(d_pb));
+    }
+    /// Returns a vector of all v2 messages from the context.
+    std::vector<v2_message> get_all_v2() const
+    {
+        std::vector<v2_message> all;
+        v2_message msg = get_v2();
+
+        while (!msg.is_empty()) {
+            all.push_back(msg);
+            msg = get_v2();
+        }
+        return all;
+    }
+#endif /* PUBNUB_USE_SUBSCRIBE_V2 */
+
 #if PUBNUB_CRYPTO_API
     /// Returns the next message from the context, decrypted with
     /// @p cipher_key. If there are none, returns an empty string.
@@ -710,6 +777,23 @@ public:
     {
         return subscribe(join(channel), opt);
     }
+
+#if PUBNUB_USE_SUBSCRIBE_V2
+    /// V2 subscribes to @p channel with "extended" (full) options
+    /// @see pubnub_subscribe_v2
+    futres subscribe_v2(std::string const& channel, subscribe_v2_options opt)
+    {
+        char const* ch = channel.empty() ? 0 : channel.c_str();
+        return doit(pubnub_subscribe_v2(d_pb, ch, opt.data()));
+    }
+
+    /// Pass a vector of channels in the @p channel and we'll put
+    /// commas between them. A helper function.
+    futres subscribe_v2(std::vector<std::string> const& channel, subscribe_v2_options opt)
+    {
+        return subscribe_v2(join(channel), opt);
+    }
+#endif /* PUBNUB_USE_SUBSCRIBE_V2 */
 
     /// Leaves a @p channel and/or @p channel_group
     /// @see pubnub_leave

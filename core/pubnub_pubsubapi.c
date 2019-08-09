@@ -123,14 +123,6 @@ enum pubnub_res pubnub_signal(pubnub_t* pb,
         return PNR_IN_PROGRESS;
     }
 
-#if PUBNUB_USE_GZIP_COMPRESSION
-    if (method != pubnubSendViaGET) {
-        pb->core.gzip_msg_len = 0;
-        if (pbgzip_compress(pb, message) == PNR_OK) {
-            message = pb->core.gzip_msg_buf;
-        }
-    }
-#endif
     rslt = pbcc_signal_prep(&pb->core, channel, method, message);
     if (PNR_STARTED == rslt) {
         pb->trans            = PBTT_SIGNAL;
@@ -289,7 +281,8 @@ static char const* do_last_publish_result(pubnub_t* pb)
     if (PUBNUB_DYNAMIC_REPLY_BUFFER && (NULL == pb->core.http_reply)) {
         return "";
     }
-    if ((pb->trans != PBTT_PUBLISH) || (pb->core.http_reply[0] == '\0')) {
+    if (((pb->trans != PBTT_PUBLISH) && (pb->trans != PBTT_SIGNAL))  ||
+        (pb->core.http_reply[0] == '\0')) {
         return "";
     }
 

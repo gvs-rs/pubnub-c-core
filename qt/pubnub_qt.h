@@ -18,9 +18,15 @@
 extern "C" {
 #include "core/pubnub_api_types.h"
 #include "core/pubnub_helper.h"
+#if PUBNUB_USE_SUBSCRIBE_V2
+#include "core/pbcc_subscribe_v2.h"
+#endif
 }
 
 #include "cpp/tribool.hpp"
+#if PUBNUB_USE_SUBSCRIBE_V2
+#include "cpp/pubnub_v2_message.hpp"
+#endif
 
 QT_BEGIN_NAMESPACE
 class QNetworkReply;
@@ -30,6 +36,7 @@ QT_END_NAMESPACE
 #define MAX_INCLUDE_DIMENSION 100
 #define MAX_ELEM_LENGTH 30
 
+#if PUBNUB_USE_ENTITY_API
 /** A wrapper class for entity api managing include parameter */
 class include_options {
     char d_include_c_strings_array[MAX_INCLUDE_DIMENSION][MAX_ELEM_LENGTH + 1];
@@ -119,9 +126,52 @@ public:
         return pbccNotSet;
     }
 };
-
+#endif /* PUBNUB_USE_ENTITY_API */
 
 struct pbcc_context;
+
+
+#if PUBNUB_USE_SUBSCRIBE_V2
+/** A wrapper class for subscribe_v2 options, enabling a nicer
+    usage. Something like:
+
+        pn.subscribe_v2(chan, subscribe_v2_options().heartbeat(412));
+*/
+class subscribe_v2_options {
+    unsigned    d_heartbeat;
+    std::string d_chgrp;
+    std::string d_filter_expr;
+    
+public:
+    subscribe_v2_options() : d_heartbeat(PUBNUB_MINIMAL_HEARTBEAT_INTERVAL) {}
+    subscribe_v2_options& channel_group(QString const& chgroup)
+    {
+        d_chgrp = chgroup.toStdString();
+        return *this;
+    }
+    subscribe_v2_options& channel_group(QStringList const& chgroup)
+    {
+        return channel_group(chgroup.join(","));
+    }
+    subscribe_v2_options& heartbeat(unsigned hb_interval)
+    {
+        d_heartbeat = hb_interval;
+        return *this;
+    }
+    subscribe_v2_options& filter_expr(QString const& filter_exp)
+    {
+        d_filter_expr = filter_exp.toStdString();
+        return *this;
+    }
+    unsigned* get_heartbeat() { return &d_heartbeat; }
+    char const* get_chgroup() { return d_chgrp.empty() ? 0 : d_chgrp.c_str(); }
+    char const* get_filter_expr()
+    {
+        return d_filter_expr.empty() ? 0 : d_filter_expr.c_str();
+    }
+};
+#endif /* PUBNUB_USE_SUBSCRIBE_V2 */
+
 
 /** @mainpage Pubnub C-core for Qt
 
@@ -226,9 +276,9 @@ public:
         return d_origin;
     }
 
-    /** Returns the string of an arrived message or other element of the
+    /** Returns the string of an arrived message, or other element of the
         response to an operation/transaction. Message(s) arrive on finish
-        of a subscribe operation, while for  other operations this will give
+        of a subscribe operation, while for other operations this will give
         access to the whole response or the next element of the response.
         That is documented in the function that starts the operation.
 
@@ -245,9 +295,29 @@ public:
     /** Returns all (remaining) messages from a context */
     QStringList get_all() const;
 
+#if PUBNUB_USE_SUBSCRIBE_V2
+    /** Returns the v2 message object of an arrived message. Message(s)
+        arrive on finish of a subscribe_v2 operation.
+        That is documented in the function that starts the operation.
 
+        Subsequent call to this function will return the next message (if
+        any). All messages are from the channel(s) the operation was for.
+        Whather or not message is empty can be checked through class member
+        function is_empty().
+        @see pubnub_v2_message.hpp
+
+        @note Context doesn't keep track of the channel(s) you subscribed(v2)
+        to. This is a memory saving design decision, as most users won't
+        change the channel(s) they subscribe_v2 too.
+        */
+    v2_message get_v2() const;
+
+    /** Returns all (remaining) v2 messages from a context */
+    QVector<v2_message> get_all_v2() const;
+#endif
+    
     /** Returns a string of a fetched subscribe operation/transaction's
-        next channel.  Each transaction may hold a list of channels, and
+        next channel. Each transaction may hold a list of channels, and
         this functions provides a way to read them.  Subsequent call to
         this function will return the next channel (if any).
 
@@ -424,6 +494,34 @@ public:
     pubnub_res subscribe(QStringList const &channel, QStringList const &channel_group=QStringList()) {
         return subscribe(channel.join(","), channel_group.join(","));
     }
+
+#if PUBNUB_USE_SUBSCRIBE_V2
+    /** The V2 subscribe. To get messages for subscribe V2, use pb.get_v2().
+        - keep in mind that it can provide you with channel and channel group info.
+
+        Basic usage initiating transaction:
+
+        subscribe_v2_options opt;
+        pubnub_qt pb;
+        pbresult = pb.subscribe_v2(pn, "my_channel", opt.filter_expr("'key' == value"));
+        ...
+
+        @param channel The string with the channel name (or comma-delimited list of
+                       channel names) to subscribe for.
+        @param opt Subscribe V2 options
+        @return #PNR_STARTED on success, an error otherwise
+
+        @see get_v2
+      */
+    pubnub_res subscribe_v2(QString const &channel, subscribe_v2_options opt);
+
+    /** A helper method to subscribe_v2 to several channels and/or channel groups
+     * by giving a (string) list of channels and passing suitable options.
+     */
+    pubnub_res subscribe_v2(QStringList const &channel, subscribe_v2_options opt) {
+        return subscribe_v2(channel.join(","), opt);
+    }
+#endif /* PUBNUB_USE_SUBSCRIBE_V2 */
 
     /** Leave the @p channel. This actually means "initiate a leave
         transaction".  You should leave channel(s) when you want to

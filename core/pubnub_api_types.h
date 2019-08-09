@@ -163,19 +163,23 @@ enum pubnub_trans {
     /** Inform Pubnub that we're still working on channel and/or
         channel_group operation/transaction */
     PBTT_HEARTBEAT,
+#if PUBNUB_USE_SUBSCRIBE_V2
     /** Subscribe V2 operation/transaction */
     PBTT_SUBSCRIBE_V2,
+#endif
+#if PUBNUB_USE_ADVANCED_HISTORY
     /** Message counts(get counters of unread messages for a user, identified by UUID,
         for the list of channels specified) starting from given timetoken, or(exclusive or)
         list of timetokens per channel.
         If neither timetoken, nor channel_timetokens are specified, gets entire message
         history counts for channels listed.
-     */
+      */
     PBTT_MESSAGE_COUNTS,
+#endif
+#if PUBNUB_USE_ENTITY_API
     /** Entity api transaction. Returns a paginated list of users associated with the
         subscription key.
       */
-#if PUBNUB_USE_ENTITY_API
     PBTT_FETCH_ALL_USERS,
     /** Entity api transaction. Creates a user with the attributes specified. */
     PBTT_CREATE_USER,

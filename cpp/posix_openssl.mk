@@ -43,8 +43,8 @@ OBJFILES += miniz_tinfl.o pbgzip_decompress.o
 endif
 
 ifeq ($(USE_SUBSCRIBE_V2), 1)
-SOURCEFILES += ../core/pubnub_subscribe_v2.c 
-OBJFILES += pubnub_subscribe_v2.o 
+SOURCEFILES += ../core/pbcc_subscribe_v2.c ../core/pubnub_subscribe_v2.c 
+OBJFILES += pbcc_subscribe_v2.o pubnub_subscribe_v2.o 
 endif
 
 ifeq ($(USE_ADVANCED_HISTORY), 1)

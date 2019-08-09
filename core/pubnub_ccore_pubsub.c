@@ -480,12 +480,13 @@ enum pubnub_res pbcc_signal_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1/signal/%s/%s/",
+                                "/signal/%s/%s/0/",
                                 pb->publish_key,
                                 pb->subscribe_key);
     APPEND_URL_ENCODED_M(pb, channel);
+    APPEND_URL_LITERAL_M(pb, "/0");
     if (pubnubSendViaGET == method) {
-        APPEND_URL_LITERAL_M(pb, "/0/");
+        pb->http_buf[pb->http_buf_len++] = '/';
         APPEND_URL_ENCODED_M(pb, message);
     }
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');

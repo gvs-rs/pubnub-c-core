@@ -273,7 +273,7 @@ typedef enum pubnub_res (*PFpbcc_parse_response_T)(struct pbcc_context*);
     pbcc_get_channel()).
 
     @param p The Pubnub C core context to parse the response "in"
-    @return 0: OK, -1: error (invalid response)
+    @return PNR_OK: OK, PNR_FORMAT_ERROR: error (invalid response)
 */
 enum pubnub_res pbcc_parse_subscribe_response(struct pbcc_context* p);
 

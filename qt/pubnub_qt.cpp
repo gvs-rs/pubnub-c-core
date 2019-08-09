@@ -203,6 +203,28 @@ QStringList pubnub_qt::get_all() const
 }
 
 
+#if PUBNUB_USE_SUBSCRIBE_V2
+v2_message pubnub_qt::get_v2() const
+{
+    KEEP_THREAD_SAFE();
+    return v2_message(pbcc_get_msg_v2(d_context.data()));
+}
+
+
+QVector<v2_message> pubnub_qt::get_all_v2() const
+{
+    QVector<v2_message> all;
+    v2_message msg = get_v2();
+
+    while (!msg.is_empty()) {
+        all.append(msg);
+        msg = get_v2();
+    }
+    return all;
+}
+#endif /* PUBNUB_USE_SUBSCRIBE_V2 */
+
+
 QString pubnub_qt::get_channel() const
 {
     KEEP_THREAD_SAFE();
@@ -326,10 +348,8 @@ pubnub_res pubnub_qt::signal(QString const& channel,
         d_method = method;
     }
     else {
-        d_message_to_send = pack_message_to_gzip(message);
-        d_method = (d_message_to_send.size() != message.size())
-                   ? pubnubSendViaPOSTwithGZIP
-                   : pubnubSendViaPOST;
+        d_message_to_send = message;
+        d_method = pubnubSendViaPOST;
     }
     return startRequest(pbcc_signal_prep(d_context.data(),
                                          channel.toLatin1().data(),
@@ -351,6 +371,20 @@ pubnub_res pubnub_qt::subscribe(QString const& channel, QString const& channel_g
             channel_group.isEmpty() ? 0 : channel_group.toLatin1().data(),
             0),
         PBTT_SUBSCRIBE);
+}
+
+
+pubnub_res pubnub_qt::subscribe_v2(QString const& channel, subscribe_v2_options opt)
+{
+    KEEP_THREAD_SAFE();
+    return startRequest(
+        pbcc_subscribe_v2_prep(
+            d_context.data(),
+            channel.isEmpty() ? 0 : channel.toLatin1().data(),
+            opt.get_chgroup(),
+            opt.get_heartbeat(),
+            opt.get_filter_expr()),
+        PBTT_SUBSCRIBE_V2);
 }
 
 
@@ -988,6 +1022,11 @@ pubnub_res pubnub_qt::finish(QByteArray const& data, int http_code)
     case PBTT_LIST_CHANNEL_GROUP:
         pbres = pbcc_parse_channel_registry_response(d_context.data());
         break;
+#if PUBNUB_USE_SUBSCRIBE_V2
+    case PBTT_SUBSCRIBE_V2:
+        pbres = pbcc_parse_subscribe_v2_response(d_context.data());
+        break;
+#endif
 #if PUBNUB_USE_ADVANCED_HISTORY
     case PBTT_MESSAGE_COUNTS:
         pbres = pbcc_parse_message_counts_response(d_context.data());
