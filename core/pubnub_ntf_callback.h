@@ -65,6 +65,7 @@ void *pubnub_get_user_data(pubnub_t *pb);
  */
 pubnub_callback_t pubnub_get_callback(pubnub_t *pb);
 
+void pubnub_stop(void);
 
 #endif /* !defined INC_PUBNUB_NTF_CALLBACK */
 

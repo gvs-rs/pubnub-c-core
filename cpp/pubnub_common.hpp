@@ -17,6 +17,9 @@ extern "C" {
 #include "core/pubnub_timers.h"
 #include "core/pubnub_helper.h"
 #include "core/pubnub_free_with_timeout.h"
+#if defined(PUBNUB_CALLBACK_API)
+#include "core/pubnub_ntf_callback.h"
+#endif
 #if PUBNUB_PROXY_API
 #include "core/pubnub_proxy.h"
 #endif
@@ -1505,6 +1508,13 @@ public:
         return rslt;
     }
 #endif
+
+   void stop(void)
+    {
+#if defined(PUBNUB_CALLBACK_API)
+        pubnub_stop();
+#endif
+    }
 
     ~context()
     {
