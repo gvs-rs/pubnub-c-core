@@ -1111,6 +1111,8 @@ void pubnub_qt::httpFinished()
         case QNetworkReply::ProtocolUnknownError:
             emit outcome(PNR_CONNECT_FAILED);
             return;
+        default:
+            break;
         }
     }
 
