@@ -26,7 +26,7 @@ public:
     } 
     std::string get_payload() { return std::string(d_.payload.ptr, d_.payload.size); } 
     std::string get_metadata() { return std::string(d_.metadata.ptr, d_.metadata.size); } 
-    bool is_signal() { return d_.is_signal; }
+    pubnub_message_type message_type() { return d_.message_type; }
     /** Message structure is considered empty if there is no timetoken info(whose
         existence is obligatory for any valid v2 message)
       */
