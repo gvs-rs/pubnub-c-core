@@ -100,11 +100,11 @@ enum pubnub_res {
     PNR_ERROR_ON_SERVER,
     /** Proxy authentication failed */
     PNR_AUTHENTICATION_FAILED,
-    /** Objects api invalid parameter */
+    /** Objects API invalid parameter */
     PNR_OBJECTS_API_INVALID_PARAM,
-    /** Objects api transaction has finished successfully */
+    /** Objects API transaction has finished successfully */
     PNR_OBJECTS_API_OK,
-    /** Objects api transaction reported an error */
+    /** Objects API transaction reported an error */
     PNR_OBJECTS_API_ERROR
 };
 
@@ -177,52 +177,52 @@ enum pubnub_trans {
     PBTT_MESSAGE_COUNTS,
 #endif
 #if PUBNUB_USE_OBJECTS_API
-    /** Objects api transaction. Returns a paginated list of users associated with the
+    /** Objects API transaction. Returns a paginated list of users associated with the
         subscription key.
       */
     PBTT_FETCH_ALL_USERS,
-    /** Objects api transaction. Creates a user with the attributes specified. */
+    /** Objects API transaction. Creates a user with the attributes specified. */
     PBTT_CREATE_USER,
-    /** Objects api transaction. Returns the user object specified with user_id */
+    /** Objects API transaction. Returns the user object specified with user_id */
     PBTT_FETCH_USER,
-    /** Objects api transaction. Updates users data( on pubnub server) specified with user_id */
+    /** Objects API transaction. Updates users data( on pubnub server) specified with user_id */
     PBTT_UPDATE_USER,
-    /** Objects api transaction. Deletes user data( on pubnub server) specified with user_id */
+    /** Objects API transaction. Deletes user data( on pubnub server) specified with user_id */
     PBTT_DELETE_USER,
-    /** Objects api transaction. Returns a paginated list of spaces associated with the
+    /** Objects API transaction. Returns a paginated list of spaces associated with the
         subscription key.
       */
     PBTT_FETCH_ALL_SPACES,
-    /** Objects api transaction. Creates a space with the attributes specified. */
+    /** Objects API transaction. Creates a space with the attributes specified. */
     PBTT_CREATE_SPACE,
-    /** Objects api transaction. Returns the space object specified with space_id */
+    /** Objects API transaction. Returns the space object specified with space_id */
     PBTT_FETCH_SPACE,
-    /** Objects api transaction. Updates space data( on pubnub server) specified with space_id */
+    /** Objects API transaction. Updates space data( on pubnub server) specified with space_id */
     PBTT_UPDATE_SPACE,
-    /** Objects api transaction. Deletes space data( on pubnub server) specified with space_id */
+    /** Objects API transaction. Deletes space data( on pubnub server) specified with space_id */
     PBTT_DELETE_SPACE,
-    /** Objects api transaction. Returns the space memberships of the user specified with user_id.
+    /** Objects API transaction. Returns the space memberships of the user specified with user_id.
       */
     PBTT_FETCH_USERS_SPACE_MEMBERSHIPS,
-    /** Objects api transaction. Adds the users space memberships specified with user_id.
+    /** Objects API transaction. Adds the users space memberships specified with user_id.
       */
     PBTT_ADD_USERS_SPACE_MEMBERSHIPS,
-    /** Objects api transaction. Updates the users space memberships specified with user_id.
+    /** Objects API transaction. Updates the users space memberships specified with user_id.
       */
     PBTT_UPDATE_USERS_SPACE_MEMBERSHIPS,
-    /** Objects api transaction. Removes the users space memberships specified with user_id.
+    /** Objects API transaction. Removes the users space memberships specified with user_id.
       */
     PBTT_REMOVE_USERS_SPACE_MEMBERSHIPS,
-    /** Objects api transaction. Returns all users in the space specified by space_id.
+    /** Objects API transaction. Returns all users in the space specified by space_id.
       */
     PBTT_FETCH_MEMBERS_IN_SPACE,
-    /** Objects api transaction. Adds the list of members of the space specified with space_id.
+    /** Objects API transaction. Adds the list of members of the space specified with space_id.
       */
     PBTT_ADD_MEMBERS_IN_SPACE,
-    /** Objects api transaction. Updates the list of members of the space specified with space_id.
+    /** Objects API transaction. Updates the list of members of the space specified with space_id.
       */
     PBTT_UPDATE_MEMBERS_IN_SPACE,
-    /** Objects api transaction. Removes the list of members of the space specified with space_id.
+    /** Objects API transaction. Removes the list of members of the space specified with space_id.
       */
     PBTT_REMOVE_MEMBERS_IN_SPACE,
 #endif /* PUBNUB_USE_OBJECTS_API */

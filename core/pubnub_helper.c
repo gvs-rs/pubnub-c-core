@@ -71,8 +71,8 @@ char const* pubnub_res_2_string(enum pubnub_res e)
     case PNR_OBJECTS_API_INVALID_PARAM: return "Objects API invalid parameter";
     case PNR_OBJECTS_API_OK: return "Objects API transaction successfully finished";
     case PNR_OBJECTS_API_ERROR: return "Objects API transaction reported an error";
+    default: return "!?!?!";
     }
-    return "!?!?!";
 }
 
 
@@ -82,8 +82,8 @@ char const* pubnub_msg_type_to_str(enum pubnub_message_type type)
     switch (type) {
     case pbsbSignal: return "signal";
     case pbsbPublished: return "published";
+    default: return "!?!?!";
     }
-    return "!?!?!";
 }
 #endif
 

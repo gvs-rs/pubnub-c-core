@@ -46,6 +46,5 @@ struct pubnub_v2_message {
     enum pubnub_message_type message_type;
 };
 
-char const* pubnub_msg_type_to_str(enum pubnub_message_type type);
 
 #endif /* INC_PUBNUB_SUBSCRIBE_V2_MESSAGE */

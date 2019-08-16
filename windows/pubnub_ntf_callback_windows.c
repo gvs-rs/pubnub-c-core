@@ -122,10 +122,7 @@ int pbntf_init(void)
     InitializeCriticalSection(&m_watcher.mutw);
     InitializeCriticalSection(&m_watcher.timerlock);
 
-    EnterCriticalSection(&m_watcher.stoplock);
     m_watcher.stop_socket_watcher_thread = false;
-    LeaveCriticalSection(&m_watcher.stoplock);
-
     m_watcher.poll = pbpal_ntf_callback_poller_init();
     if (NULL == m_watcher.poll) {
         return -1;

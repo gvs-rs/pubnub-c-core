@@ -162,9 +162,7 @@ int pbntf_init(void)
         return -1;
     }
     pbpal_ntf_callback_queue_init(&m_watcher.queue);
-    pthread_mutex_lock(&m_watcher.stoplock);
     m_watcher.stop_socket_watcher_thread = false;
-    pthread_mutex_unlock(&m_watcher.stoplock);
 
 #if defined(PUBNUB_CALLBACK_THREAD_STACK_SIZE_KB)                              \
     && (PUBNUB_CALLBACK_THREAD_STACK_SIZE_KB > 0)

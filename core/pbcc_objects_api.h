@@ -10,7 +10,7 @@ struct pbcc_context;
 /** @file pbcc_objects_api.h
 
     This has the functions for formating and parsing the
-    requests and responses for 'objects api' transactions
+    requests and responses for 'Objects API' transactions
   */
 
 /** Prepares the 'fetch_all_users' transaction, mostly by
@@ -145,7 +145,7 @@ enum pubnub_res pbcc_update_members_in_space_prep(struct pbcc_context* pb,
                                                   char const* update_obj);
 
 
-/** Parses server response simply on eny 'objects api' transaction request.
+/** Parses server response simply on any 'Objects API' transaction request.
     If transaction is successful, the response(a JSON object) will
     always have key:
     - "status": with two possible values "ok" and "error"
