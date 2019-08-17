@@ -113,7 +113,7 @@ enum pubnub_cancel_res pubnub_cancel(pubnub_t* p);
     @param channel The string with the channel to publish to.
     @param message The message to publish, expected to be in JSON format
 
-    @return #PNR_STARTED on success, an error otherwise
+    @return #PNR_STARTED or #PNR_OK on success, an error otherwise
  */
 enum pubnub_res pubnub_publish(pubnub_t* p, const char* channel, const char* message);
 
@@ -121,18 +121,16 @@ enum pubnub_res pubnub_publish(pubnub_t* p, const char* channel, const char* mes
     @p method(GET, or POST), using the @p pb context. This actually means
     "initiate a signal transaction".
 
-    It has similar behaviour as publish, but unlike publish transaction,
-    signal erases previous signal message on server(, on a given channel,)
-    and you can not send any metadata.
-    There can be only up to one signal message at the time. If it's not renewed
-    by another signal, signal message  disappears from channel history after
-    certain amount of time.
-    Signal message is much shorter and its maximum length( around 500 bytes)
-    is smaller than full publish message.
-    If gzip compression is 'activated'(linked) SDK will try to gzip-commpress
-    signal message before sending it.
+    It has similar behaviour as publish, but unlike publish
+    transaction, signal erases previous signal message on server(, on
+    a given channel,) and you can not send any metadata.
 
-    You can't 'signal' if a transaction is in progress on @p p context.
+    There can be only up to one signal message at the time. If it's
+    not renewed by another signal, signal message disappears from
+    channel history after certain amount of time.
+
+    You can't (send a) 'signal' if a transaction is in progress on @p
+    p context.
 
     If transaction is not successful (@c PNR_PUBLISH_FAILED), you can
     get the string describing the reason for failure by calling
@@ -153,7 +151,7 @@ enum pubnub_res pubnub_publish(pubnub_t* p, const char* channel, const char* mes
     @param method The chosen performing method(GET, or POST) for the transaction
     @param message The signal message to send, expected to be in JSON format
 
-    @return #PNR_STARTED on success, an error otherwise
+    @return #PNR_STARTED or #PNR_OK on success, an error otherwise
  */
 enum pubnub_res pubnub_signal(pubnub_t* pb,
                               const char* channel,
@@ -233,7 +231,7 @@ char const* pubnub_get_channel(pubnub_t* pb);
     @param channel_group The string with the channel group name (or
     comma-delimited list of channel group names) to subscribe to.
 
-    @return #PNR_STARTED on success, an error otherwise
+    @return #PNR_STARTED or #PNR_OK on success, an error otherwise
 
     @see pubnub_get
  */
