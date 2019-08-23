@@ -498,6 +498,7 @@ next_state:
             pb->state = PBS_CONNECTED;
             break;
         default:
+            pbpal_report_error_from_environment(pb, __FILE__, __LINE__);
             pb->core.last_result = PNR_ADDR_RESOLUTION_FAILED;
 #if PUBNUB_ADNS_RETRY_AFTER_CLOSE
             if (pb->flags.retry_after_close) {
@@ -543,6 +544,7 @@ next_state:
             pb->state = PBS_CONNECTED;
             goto next_state;
         default:
+            pbpal_report_error_from_environment(pb, __FILE__, __LINE__);
             pbntf_update_socket(pb);
             outcome_detected(pb, PNR_ADDR_RESOLUTION_FAILED);
             break;
@@ -571,6 +573,7 @@ next_state:
             pbntf_watch_out_events(pb);
             goto next_state;
         default:
+            pbpal_report_error_from_environment(pb, __FILE__, __LINE__);
             pbntf_update_socket(pb);
             outcome_detected(pb, PNR_ADDR_RESOLUTION_FAILED);
             break;
@@ -593,6 +596,7 @@ next_state:
             pb->state = PBS_CONNECTED;
             goto next_state;
         default:
+            pbpal_report_error_from_environment(pb, __FILE__, __LINE__);
             outcome_detected(pb, PNR_CONNECT_FAILED);
             break;
         }
