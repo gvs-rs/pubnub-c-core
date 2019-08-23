@@ -24,13 +24,18 @@ void pbpal_report_error_from_environment(pubnub_t* pb, char const* file, int lin
     err_str = strerror(errno);
 #endif
     PUBNUB_LOG_DEBUG(
-        "%s:%d: pbpal_report_error_from_environment(pb=%p): errno=%d('%s') use_blocking_io=%d\n",
+        "%s:%d: pbpal_report_error_from_environment(pb=%p): errno=%d('%s')",
         file,
         line,
         pb,
         errno,
-        err_str,
-        (int)pb->options.use_blocking_io);
+        err_str);
+    if (pb != NULL) {
+        PUBNUB_LOG_DEBUG(" use_blocking_io=%d\n", (int)pb->options.use_blocking_io);
+    }
+    else {
+        PUBNUB_LOG_DEBUG("\n");
+    }
 #if defined(_WIN32)
     PUBNUB_LOG_DEBUG("%s:%d: pbpal_report_error_from_environment(pb=%p): errno=%d('%s') "
                      "GetLastError()=%lu "

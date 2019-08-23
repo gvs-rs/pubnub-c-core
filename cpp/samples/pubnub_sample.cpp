@@ -96,7 +96,7 @@ int main()
         else {
             std::cout << "Subscribe failed!" << std::endl;
         }
-        
+
         std::cout << "Getting time" << std::endl;
         if (PNR_OK ==  pb.time().await()) {
             std::cout << "Gotten time " << pb.get() << "; last time token="<< pb.last_time_token() << std::endl;

@@ -251,6 +251,7 @@ try_TCP_connect_spare_address(pb_socket_t*                   skt,
             rslt = pbpal_connect_failed;
         }
         if (pbpal_connect_failed == rslt) {
+            pbpal_report_error_from_environment(NULL, __FILE__, __LINE__);
             flags->retry_after_close =
                 (++spare_addresses->ipv4_index < spare_addresses->n_ipv4);
             if_no_retry_close_socket(skt, flags);
@@ -275,6 +276,7 @@ try_TCP_connect_spare_address(pb_socket_t*                   skt,
             rslt = pbpal_connect_failed;
         }
         if (pbpal_connect_failed == rslt) {
+            pbpal_report_error_from_environment(NULL, __FILE__, __LINE__);
             flags->retry_after_close =
                 (++spare_addresses->ipv6_index < spare_addresses->n_ipv6);
             if_no_retry_close_socket(skt, flags);
