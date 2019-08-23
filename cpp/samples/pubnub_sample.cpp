@@ -67,54 +67,7 @@ int main()
         else {
             std::cout << "Publishing failed with code: " << res << std::endl;
         }
-//
-        std::cout << "Subscribing" << std::endl;
-        if (PNR_OK ==  pb.subscribe_v2(chan, pubnub::subscribe_v2_options()).await()) {
-            std::cout << "v2 subscribed! Got messages:" << std::endl;
-            /// Lets illustrate getting all the message in a vector,
-            /// and iterating over it
-#if __cplusplus >= 201103L
-#if PUBNUB_CRYPTO_API
-            auto msg = pb.get_all_decrypted("KUKUMENEGRDNA");
-#else
-            auto msg = pb.get_all_v2();
-#endif
-            for (auto it = msg.begin(); it != msg.end(); ++it) {
-                std::cout << "tt=" << it->tt() << std::endl;
-                std::cout << "region=" << it->region() << std::endl;
-                std::cout << "flags=" << it->flags() << std::endl;
-                std::cout << "channel=" << it->channel() << std::endl;
-                std::cout << "match_or_group=" << it->match_or_group() << std::endl;
-                std::cout << "payload=" << it->payload() << std::endl;
-                std::cout << "metadata=" << it->metadata() << std::endl;
-                std::cout << "message_type=" << pubnub_msg_type_to_str(it->message_type())
-                          << std::endl;
-                std::cout << "========================================\n";
-            }
-#else
-#if PUBNUB_CRYPTO_API
-            std::vector<v2_message> msg = pb.get_all_decrypted("KUKUMENEGRDNA");
-#else
-            std::vector<v2_message> msg = pb.get_all_v2();
-#endif
-            for (std::vector<v2_message>::iterator it = msg.begin(); it != msg.end(); ++it) {
-                std::cout << "tt=" << it->get_tt() << std::endl;
-                std::cout << "region=" << it->get_region() << std::endl;
-                std::cout << "flags=" << it->get_flags() << std::endl;
-                std::cout << "channel=" << it->get_channel() << std::endl;
-                std::cout << "match_or_group=" << it->get_match_or_group() << std::endl;
-                std::cout << "payload=" << it->get_payload() << std::endl;
-                std::cout << "metadata=" << it->get_metadata() << std::endl;
-                std::cout << "is_signal=" << it->is_signal() << std::endl;
-                std::cout << "========================================\n";
-            }
-#endif
-        }
-        else {
-            std::cout << "Subscribe failed!" << std::endl;
-        }
-//
-/*
+
         std::cout << "Subscribing" << std::endl;
         if (PNR_OK ==  pb.subscribe(chan).await()) {
             std::cout << "Subscribed! Got messages:" << std::endl;
@@ -143,7 +96,7 @@ int main()
         else {
             std::cout << "Subscribe failed!" << std::endl;
         }
-*/
+        
         std::cout << "Getting time" << std::endl;
         if (PNR_OK ==  pb.time().await()) {
             std::cout << "Gotten time " << pb.get() << "; last time token="<< pb.last_time_token() << std::endl;
