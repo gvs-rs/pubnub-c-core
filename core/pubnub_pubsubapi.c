@@ -53,7 +53,7 @@ pubnub_t* pubnub_init(pubnub_t* p, const char* publish_key, const char* subscrib
     p->method                         = pubnubSendViaGET;
 #if PUBNUB_ADVANCED_KEEP_ALIVE
     p->keep_alive.max     = 1000;
-    p->keep_alive.timeout = 50;
+    p->keep_alive.timeout = 1000;
 #endif
     pbpal_init(p);
     pubnub_mutex_unlock(p->monitor);
