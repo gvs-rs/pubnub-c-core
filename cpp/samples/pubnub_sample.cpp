@@ -19,8 +19,8 @@ static void wait_seconds(double time_in_seconds)
 static void* wait_and_than_cancel(void* pb)
 {
     for (;;) {
-        /* Wait for 30 seconds before canceling the operation */
-        wait_seconds(90);
+        /* Wait for 6 minutes before canceling the operation */
+        wait_seconds(360);
         static_cast<pubnub::context*>(pb)->cancel();
     }
     return pb;
@@ -39,7 +39,7 @@ int main()
            blocking I/O on most platforms. Uncomment to use non-
            blocking I/O.
         */
-       pb.set_blocking_io(pubnub::non_blocking);
+        pb.set_blocking_io(pubnub::non_blocking);
         
         if (0 != pb.set_uuid_v4_random()) {
             pb.set_uuid("grof-monte-cristo");
