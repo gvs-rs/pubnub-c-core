@@ -9,6 +9,7 @@
 #if PUBNUB_USE_IPV6
 #include "lib/pubnub_parse_ipv6_addr.h"
 #endif
+#include "pbpal.h"
 #endif /* defined(PUBNUB_CALLBACK_API) */
 
 #include <string.h>
@@ -56,6 +57,9 @@ int pubnub_set_proxy_manual(pubnub_t*              p,
         }
 #endif
     }
+#if PUBNUB_USE_MULTIPLE_ADDRESSES
+    pbpal_multiple_addresses_reset_counters(&p->spare_addresses);
+#endif
 #endif /* defined(PUBNUB_CALLBACK_API) */
     memcpy(p->proxy_hostname, ip_address_or_url, ip_or_url_len + 1);
     pubnub_mutex_unlock(p->monitor);
@@ -74,6 +78,9 @@ void pubnub_set_proxy_none(pubnub_t* p)
 #if PUBNUB_USE_IPV6
     memset(&(p->proxy_ipv6_address), 0, sizeof p->proxy_ipv6_address);
 #endif
+#if PUBNUB_USE_MULTIPLE_ADDRESSES
+    pbpal_multiple_addresses_reset_counters(&p->spare_addresses);
+#endif
 #endif /* defined(PUBNUB_CALLBACK_API) */
     p->proxy_type = pbproxyNONE;
     p->proxy_port = 0;
@@ -84,9 +91,12 @@ void pubnub_set_proxy_none(pubnub_t* p)
 
 enum pubnub_proxy_type pubnub_proxy_protocol_get(pubnub_t* p)
 {
+    enum pubnub_proxy_type proxy_type;
+    
     PUBNUB_ASSERT_OPT(p != NULL);
+    
     pubnub_mutex_lock(p->monitor);
-    enum pubnub_proxy_type proxy_type = p->proxy_type;
+    proxy_type = p->proxy_type;
     pubnub_mutex_unlock(p->monitor);
 
     return proxy_type;
