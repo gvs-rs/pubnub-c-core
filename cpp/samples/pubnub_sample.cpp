@@ -52,7 +52,10 @@ int main()
         }
         pb.set_auth("belgrade");
 //        pb.set_proxy_manual(pubnub::http_connect_proxy, "ip17-149.cbn.net.id", 30204);
-        pb.set_proxy_manual(pubnub::http_connect_proxy, "127.0.0.1", 8888);
+//        pb.set_proxy_manual(pubnub::http_connect_proxy, "127.0.0.1", 8888);
+        pb.set_proxy_manual(pubnub::http_connect_proxy,
+                            "110.74.196.235",
+                            46140);
 /*
         pb.set_transaction_timeout(
 #if __cplusplus >= 201103L
