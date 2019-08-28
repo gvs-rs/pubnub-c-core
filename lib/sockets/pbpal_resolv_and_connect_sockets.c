@@ -334,8 +334,12 @@ try_TCP_connect_spare_address(pb_socket_t*                   skt,
     else {
         pbpal_multiple_addresses_reset_counters(spare_addresses);
     }
-
-    return rslt;
+    if ((pbpal_connect_failed == rslt) && !flags->retry_after_close) {
+        rslt = pbpal_resolv_resource_failure;
+        pbpal_multiple_addresses_reset_counters(spare_addresses);
+    }
+    
+    return  rslt;
 }
 #endif /* PUBNUB_USE_MULTIPLE_ADDRESSES */
 #endif /* PUBNUB_CALLBACK_API */

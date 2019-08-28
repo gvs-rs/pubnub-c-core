@@ -535,7 +535,7 @@ static int check_answer(const uint8_t** o_reader,
                 }
                 else {
                     PUBNUB_LOG_TRACE("ttl_ipv4= %u seconds\n", ttl_ipv4);
-                    spare_addresses->ttl_ipv4[spare_addresses->n_ipv4] = (uint16_t)ttl_ipv4/100;
+                    spare_addresses->ttl_ipv4[spare_addresses->n_ipv4] = (uint16_t)ttl_ipv4;
                 }
                 memcpy(spare_addresses->ipv4_addresses[spare_addresses->n_ipv4++].ipv4, reader, 4);
             }

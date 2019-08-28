@@ -58,6 +58,7 @@
 /** This is the URL of the Pubnub server. Change only for testing
     purposes.
 */
+//#define PUBNUB_ORIGIN  "ps.pndsn.com"
 #define PUBNUB_ORIGIN  "ps.pndsn.com"
 
 /** Set to 0 to disable changing the origin from the default
