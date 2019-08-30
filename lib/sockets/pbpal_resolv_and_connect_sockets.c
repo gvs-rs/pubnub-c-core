@@ -358,7 +358,7 @@ enum pbpal_resolv_n_connect_result pbpal_resolv_and_connect(pubnub_t* pb)
 #if PUBNUB_PROXY_API
     if (0 != pb->proxy_ipv4_address.ipv4[0]) {
         struct sockaddr_in dest = { 0 };
-        PUBNUB_LOG_TRACE("0 != pb->proxy_ipv4_address.ipv4[0] - ");
+        PUBNUB_LOG_TRACE("(0 != pb->proxy_ipv4_address.ipv4[0]) - ");
         memcpy(&(dest.sin_addr.s_addr),
                pb->proxy_ipv4_address.ipv4,
                sizeof dest.sin_addr.s_addr);
@@ -371,7 +371,7 @@ enum pbpal_resolv_n_connect_result pbpal_resolv_and_connect(pubnub_t* pb)
              || (0 != pb->proxy_ipv6_address.ipv6[1])) {
         struct sockaddr_in6 dest = { 0 };
         PUBNUB_LOG_TRACE("(0 != pb->proxy_ipv6_address.ipv6[0]) ||"
-                         " (0 != pb->proxy_ipv6_address.ipv6[1] - ");
+                         " (0 != pb->proxy_ipv6_address.ipv6[1]) - ");
         memcpy(dest.sin6_addr.s6_addr,
                pb->proxy_ipv6_address.ipv6,
                sizeof dest.sin6_addr.s6_addr);

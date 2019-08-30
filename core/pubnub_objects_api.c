@@ -85,7 +85,7 @@ enum pubnub_res pubnub_create_user(pubnub_t* pb,
         pubnub_mutex_unlock(pb->monitor);
         return PNR_IN_PROGRESS;
     }
-
+    
 #if PUBNUB_USE_GZIP_COMPRESSION
     pb->core.gzip_msg_len = 0;
     if (pbgzip_compress(pb, user_obj) == PNR_OK) {
@@ -149,12 +149,6 @@ enum pubnub_res pubnub_update_user(pubnub_t* pb,
         return PNR_IN_PROGRESS;
     }
     
-#if PUBNUB_USE_GZIP_COMPRESSION
-    pb->core.gzip_msg_len = 0;
-    if (pbgzip_compress(pb, user_obj) == PNR_OK) {
-        user_obj = pb->core.gzip_msg_buf;
-    }
-#endif
     rslt = pbcc_update_user_prep(&pb->core, include, include_count, user_obj);
     if (PNR_STARTED == rslt) {
         pb->trans            = PBTT_UPDATE_USER;
