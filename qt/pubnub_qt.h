@@ -1257,6 +1257,18 @@ public:
       */
     pubnub_res fetch_users_space_memberships(QString const& user_id, list_options& options);
 
+    pubnub_res add_users_space_memberships(QString const& user_id,
+                                           QByteArray const& update_obj,
+                                           QStringList& include);
+
+    pubnub_res add_users_space_memberships(QString const& user_id,
+                                           QJsonDocument const& update_obj,
+                                           QStringList& include) {
+        return add_users_space_memberships(user_id,
+                                           update_obj.toJson(),
+                                           include);
+    }
+
     /** Initiates transaction that updates the space memberships of the user specified
         by @p user_id. Use the `add`, `update`, and `remove` properties in the
         @p update_obj to perform those operations on one, or more memberships.
@@ -1348,6 +1360,18 @@ public:
                                               include);
     }
 
+    pubnub_res remove_users_space_memberships(QString const& user_id,
+                                              QByteArray const& update_obj,
+                                              QStringList& include);
+
+    pubnub_res remove_users_space_memberships(QString const& user_id,
+                                              QJsonDocument const& update_obj,
+                                              QStringList& include) {
+        return remove_users_space_memberships(user_id,
+                                              update_obj.toJson(),
+                                              include);
+    }
+
     /** Initiates transaction that returns all users in the space specified by @p space_id,
         optionally including the custom data objects for...
 
@@ -1362,6 +1386,18 @@ public:
         @return #PNR_STARTED on success, an error otherwise
       */
     pubnub_res fetch_members_in_space(QString const& space_id, list_options& options);
+
+    pubnub_res add_members_in_space(QString const& space_id,
+                                    QByteArray const& update_obj,
+                                    QStringList& include);
+
+    pubnub_res add_members_in_space(QString const& space_id,
+                                    QJsonDocument const& update_obj,
+                                    QStringList& include) {
+        return add_members_in_space(space_id,
+                                    update_obj.toJson(),
+                                    include);
+    }
 
     /** Initiates transaction that updates the list of members of the space specified by
         @p space_id. Use the `add`, `update`, and `remove` properties in the @p update_obj
@@ -1450,6 +1486,18 @@ public:
                                        QJsonDocument const& update_obj,
                                        QStringList& include) {
         return update_members_in_space(space_id,
+                                       update_obj.toJson(),
+                                       include);
+    }
+
+    pubnub_res remove_members_in_space(QString const& space_id,
+                                       QByteArray const& update_obj,
+                                       QStringList& include);
+
+    pubnub_res remove_members_in_space(QString const& space_id,
+                                       QJsonDocument const& update_obj,
+                                       QStringList& include) {
+        return remove_members_in_space(space_id,
                                        update_obj.toJson(),
                                        include);
     }

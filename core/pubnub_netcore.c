@@ -620,6 +620,9 @@ next_state:
         break;
     }
     case PBS_CONNECTED:
+//
+        printf("-----------> connected_time='%lu'\n", (unsigned long)time(NULL));
+//
         pb->flags.should_close = !pb->options.use_http_keep_alive;
 #if PUBNUB_NEED_RETRY_AFTER_CLOSE
         pb->flags.retry_after_close = false;

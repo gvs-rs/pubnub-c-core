@@ -185,7 +185,11 @@ int pbpal_ntf_poll_away(struct pbpal_poll_data* data, int ms)
         size_t apoll_size = data->size;
         for (i = 0; i < apoll_size; ++i) {
             if (data->apoll[i].revents & (POLLIN | POLLOUT)) {
+                printf("------------->data->apoll[i].revents & (POLLIN | POLLOUT)\n");
                 pbntf_requeue_for_processing(data->apb[i]);
+            }
+            else if (data->apoll[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                printf("------------->data->apoll[i].revents & (POLLERR | POLLHUP | POLLNVAL)\n");
             }
         }
     }

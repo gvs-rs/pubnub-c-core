@@ -2,7 +2,6 @@
 #include "pubnub_internal.h"
 #include "pubnub_version.h"
 #include "pubnub_assert.h"
-#include "pubnub_json_parse.h"
 #include "pubnub_log.h"
 #include "pubnub_url_encode.h"
 #include "lib/pb_strnlen_s.h"
@@ -15,6 +14,57 @@
 #define MAX_OBJECTS_LIMIT 100
 /** Maximum include string element length */ 
 #define MAX_INCLUDE_ELEM_LENGTH 30
+
+
+enum pubnub_res pbcc_find_objects_id(struct pbcc_context* pb,
+                                     char const* obj,
+                                     struct pbjson_elem* parsed_id,
+                                     char const* file,
+                                     int line)
+{
+    struct pbjson_elem elem;
+    enum pbjson_object_name_parse_result json_rslt;
+
+    elem.end = pbjson_find_end_element(obj,
+                                       obj + pb_strnlen_s(obj, PUBNUB_MAX_OBJECT_LENGTH));
+    if ((*obj != '{') || (*(elem.end++) != '}')) {
+        PUBNUB_LOG_ERROR("%s:%d: pbcc_find_objects_id(pbcc=%p) - "
+                         "Invalid param: object is not JSON - "
+                         "object='%s'\n",
+                         file,
+                         line,
+                         pb,
+                         obj);
+
+        return PNR_OBJECTS_API_INVALID_PARAM;
+    }
+    elem.start = obj;
+    json_rslt = pbjson_get_object_value(&elem, "id", parsed_id);
+    if (json_rslt != jonmpOK) {
+        PUBNUB_LOG_ERROR("%s:%d: pbcc_find_objects_id(pbcc=%p) - Invalid param: "
+                         "pbjson_get_object_value(\"id\") reported an error: %s\n",
+                         file,
+                         line,
+                         pb,
+                         pbjson_object_name_parse_result_2_string(json_rslt));
+
+        return PNR_OBJECTS_API_INVALID_PARAM;
+    }
+    if ((*parsed_id->start != '"') || (*(parsed_id->end - 1) != '"')) {
+        PUBNUB_LOG_ERROR("%s:%d: pbcc_find_objects_id(pbcc=%p) - Invalid param: "
+                         "'id' key value is not a string - id='%.*s'\n",
+                         file,
+                         line,
+                         pb,
+                         (int)(parsed_id->end - parsed_id->start),
+                         parsed_id->start);
+
+        return PNR_OBJECTS_API_INVALID_PARAM;
+    }
+
+    return PNR_OK;
+}
+
 
 enum pubnub_res append_url_param_include(struct pbcc_context* pb,
                                          char const** include, 
@@ -127,9 +177,7 @@ enum pubnub_res pbcc_create_user_prep(struct pbcc_context* pb,
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
 
     rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, user_obj);
-    }
+    APPEND_MESSAGE_BODY_M(rslt, pb, user_obj);
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }
@@ -155,7 +203,7 @@ enum pubnub_res pbcc_fetch_user_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/users/%s",
+                                "/v1/objects/%s/users/%s",
                                 pb->subscribe_key,
                                 user_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -170,62 +218,28 @@ enum pubnub_res pbcc_fetch_user_prep(struct pbcc_context* pb,
 enum pubnub_res pbcc_update_user_prep(struct pbcc_context* pb,
                                       char const** include, 
                                       size_t include_count,
-                                      char const* user_obj)
+                                      char const* user_obj,
+                                      struct pbjson_elem const* id)
 {
     char const* const  uname = pubnub_uname();
     char const*        uuid = pbcc_uuid_get(pb);
     enum pubnub_res    rslt;
-    struct pbjson_elem elem;
-    struct pbjson_elem parsed_id;
-    enum pbjson_object_name_parse_result json_rslt;
     
     PUBNUB_ASSERT_OPT(user_obj != NULL);
-
-    elem.end = pbjson_find_end_element(user_obj,
-                                       user_obj + pb_strnlen_s(user_obj, PUBNUB_MAX_OBJECT_LENGTH));
-    if ((*user_obj != '{') || (*(elem.end++) != '}')) {
-        PUBNUB_LOG_ERROR("pbcc_update_user_prep(pbcc=%p) - Invalid param: User object is not JSON - "
-                         "user_obj='%s'\n",
-                         pb,
-                         user_obj);
-
-        return PNR_OBJECTS_API_INVALID_PARAM;
-    }
-    elem.start = user_obj;
-    json_rslt = pbjson_get_object_value(&elem, "id", &parsed_id);
-    if (json_rslt != jonmpOK) {
-        PUBNUB_LOG_ERROR("pbcc_update_user_prep(pbcc=%p) - Invalid param: "
-                         "pbjson_get_object_value(\"id\") reported an error: %s\n",
-                         pb,
-                         pbjson_object_name_parse_result_2_string(json_rslt));
-
-        return PNR_OBJECTS_API_INVALID_PARAM;
-    }
-    if ((*parsed_id.start != '"') || (*(parsed_id.end - 1) != '"')) {
-        PUBNUB_LOG_ERROR("pbcc_update_user_prep(pbcc=%p) - Invalid param: "
-                         "'id' key value is not a string - id=%.*s\n",
-                         pb,
-                         (int)(parsed_id.end - parsed_id.start),
-                         parsed_id.start);
-
-        return PNR_OBJECTS_API_INVALID_PARAM;
-    }
 
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/users/%.*s",
+                                "/v1/objects/%s/users/%.*s",
                                 pb->subscribe_key,
-                                (int)(parsed_id.end - parsed_id.start - 2),
-                                parsed_id.start + 1);
+                                (int)(id->end - id->start - 2),
+                                id->start + 1);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
 
     rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, user_obj);
-    }
+    APPEND_MESSAGE_BODY_M(rslt, pb, user_obj);
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }
@@ -247,7 +261,7 @@ enum pubnub_res pbcc_delete_user_prep(struct pbcc_context* pb, char const* user_
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/users/%s",
+                                "/v1/objects/%s/users/%s",
                                 pb->subscribe_key,
                                 user_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -275,7 +289,7 @@ enum pubnub_res pbcc_fetch_all_spaces_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/spaces",
+                                "/v1/objects/%s/spaces",
                                 pb->subscribe_key);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     if (limit > 0) {
@@ -308,16 +322,14 @@ enum pubnub_res pbcc_create_space_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/spaces",
+                                "/v1/objects/%s/spaces",
                                 pb->subscribe_key);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
 
     rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, space_obj);
-    }
+    APPEND_MESSAGE_BODY_M(rslt, pb, space_obj);
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }
@@ -343,7 +355,7 @@ enum pubnub_res pbcc_fetch_space_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/spaces/%s",
+                                "/v1/objects/%s/spaces/%s",
                                 pb->subscribe_key,
                                 space_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -358,64 +370,28 @@ enum pubnub_res pbcc_fetch_space_prep(struct pbcc_context* pb,
 enum pubnub_res pbcc_update_space_prep(struct pbcc_context* pb,
                                        char const** include, 
                                        size_t include_count,
-                                       char const* space_obj)
+                                       char const* space_obj,
+                                       struct pbjson_elem const* id)
 {
     char const* const  uname = pubnub_uname();
     char const*        uuid = pbcc_uuid_get(pb);
     enum pubnub_res    rslt;
-    struct pbjson_elem elem;
-    struct pbjson_elem parsed_id;
-    enum pbjson_object_name_parse_result json_rslt;
     
     PUBNUB_ASSERT_OPT(space_obj != NULL);
-
-    elem.end = pbjson_find_end_element(space_obj,
-                                       space_obj + pb_strnlen_s(space_obj, PUBNUB_MAX_OBJECT_LENGTH));
-    /* elem.end has to be just behind end curly brace */
-    if ((*space_obj != '{') || (*(elem.end++) != '}')) {
-        PUBNUB_LOG_ERROR("pbcc_update_space_prep(pbcc=%p) - "
-                         "Invalid param: Space object is not JSON - "
-                         "space_obj='%s'\n",
-                         pb,
-                         space_obj);
-
-        return PNR_OBJECTS_API_INVALID_PARAM;
-    }
-    elem.start = space_obj;
-    json_rslt = pbjson_get_object_value(&elem, "id", &parsed_id);
-    if (json_rslt != jonmpOK) {
-        PUBNUB_LOG_ERROR("pbcc_update_space_prep(pbcc=%p) - Invalid param: "
-                         "pbjson_get_object_value(\"id\") reported an error: %s\n",
-                         pb,
-                         pbjson_object_name_parse_result_2_string(json_rslt));
-
-        return PNR_OBJECTS_API_INVALID_PARAM;
-    }
-    if ((*parsed_id.start != '"') || (*(parsed_id.end - 1) != '"')) {
-        PUBNUB_LOG_ERROR("pbcc_update_space_prep(pbcc=%p) - Invalid param: "
-                         "'id' key value is not a string - id=%.*s\n",
-                         pb,
-                         (int)(parsed_id.end - parsed_id.start),
-                         parsed_id.start);
-
-        return PNR_OBJECTS_API_INVALID_PARAM;
-    }
 
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/spaces/%.*s",
+                                "/v1/objects/%s/spaces/%.*s",
                                 pb->subscribe_key,
-                                (int)(parsed_id.end - parsed_id.start - 2),
-                                parsed_id.start + 1);
+                                (int)(id->end - id->start - 2),
+                                id->start + 1);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
 
     rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, space_obj);
-    }
+    APPEND_MESSAGE_BODY_M(rslt, pb, space_obj);
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }
@@ -437,7 +413,7 @@ enum pubnub_res pbcc_delete_space_prep(struct pbcc_context* pb, char const* spac
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/spaces/%s",
+                                "/v1/objects/%s/spaces/%s",
                                 pb->subscribe_key,
                                 space_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -466,7 +442,7 @@ enum pubnub_res pbcc_fetch_users_space_memberships_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/users/%s/spaces",
+                                "/v1/objects/%s/users/%s/spaces",
                                 pb->subscribe_key,
                                 user_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -481,37 +457,6 @@ enum pubnub_res pbcc_fetch_users_space_memberships_prep(struct pbcc_context* pb,
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
     rslt = append_url_param_include(pb, include, include_count);
-
-    return (rslt != PNR_OK) ? rslt : PNR_STARTED;
-}
-
-
-enum pubnub_res pbcc_add_users_space_memberships_prep(struct pbcc_context* pb,
-                                                      char const* user_id,
-                                                      char const** include, 
-                                                      size_t include_count,
-                                                      char const* update_obj)
-{
-    char const* const  uname = pubnub_uname();
-    char const*        uuid = pbcc_uuid_get(pb);
-    enum pubnub_res    rslt;
-    
-    PUBNUB_ASSERT_OPT(update_obj != NULL);
-
-    pb->http_content_len = 0;
-    pb->http_buf_len = snprintf(pb->http_buf,
-                                sizeof pb->http_buf,
-                                "/v1​/objects​/%s/users/%s/spaces",
-                                pb->subscribe_key,
-                                user_id);
-    APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
-    APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
-    APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
-
-    rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, update_obj);
-    }
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }
@@ -532,7 +477,7 @@ enum pubnub_res pbcc_update_users_space_memberships_prep(struct pbcc_context* pb
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/users/%s/spaces",
+                                "/v1/objects/%s/users/%s/spaces",
                                 pb->subscribe_key,
                                 user_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -540,40 +485,7 @@ enum pubnub_res pbcc_update_users_space_memberships_prep(struct pbcc_context* pb
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
 
     rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, update_obj);
-    }
-
-    return (rslt != PNR_OK) ? rslt : PNR_STARTED;
-}
-
-
-enum pubnub_res pbcc_remove_users_space_memberships_prep(struct pbcc_context* pb,
-                                                         char const* user_id,
-                                                         char const** include, 
-                                                         size_t include_count,
-                                                         char const* update_obj)
-{
-    char const* const  uname = pubnub_uname();
-    char const*        uuid = pbcc_uuid_get(pb);
-    enum pubnub_res    rslt;
-    
-    PUBNUB_ASSERT_OPT(update_obj != NULL);
-
-    pb->http_content_len = 0;
-    pb->http_buf_len = snprintf(pb->http_buf,
-                                sizeof pb->http_buf,
-                                "/v1​/objects​/%s/users/%s/spaces",
-                                pb->subscribe_key,
-                                user_id);
-    APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
-    APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
-    APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
-
-    rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, update_obj);
-    }
+    APPEND_MESSAGE_BODY_M(rslt, pb, update_obj);
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }
@@ -597,7 +509,7 @@ enum pubnub_res pbcc_fetch_members_in_space_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/spaces/%s/users",
+                                "/v1/objects/%s/spaces/%s/users",
                                 pb->subscribe_key,
                                 space_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -632,7 +544,7 @@ enum pubnub_res pbcc_update_members_in_space_prep(struct pbcc_context* pb,
     pb->http_content_len = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
-                                "/v1​/objects​/%s/spaces/%s/users",
+                                "/v1/objects/%s/spaces/%s/users",
                                 pb->subscribe_key,
                                 space_id);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
@@ -640,9 +552,7 @@ enum pubnub_res pbcc_update_members_in_space_prep(struct pbcc_context* pb,
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
 
     rslt = append_url_param_include(pb, include, include_count);
-    if (PNR_OK == rslt) {
-        APPEND_MESSAGE_BODY_M(pb, update_obj);
-    }
+    APPEND_MESSAGE_BODY_M(rslt, pb, update_obj);
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }

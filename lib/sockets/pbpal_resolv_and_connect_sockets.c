@@ -196,6 +196,9 @@ connect_TCP_socket(pb_socket_t*           skt,
     pbpal_set_socket_blocking_io(*skt, options->use_blocking_io);
     socket_disable_SIGPIPE(*skt);
     if (SOCKET_ERROR == connect(*skt, dest, sockaddr_size)) {
+//
+        printf("-------------> start_connecting_time='%lu'\n", (unsigned long)time(NULL));
+//
         return socket_would_block() ? pbpal_connect_wouldblock
                                     : pbpal_connect_failed;
     }

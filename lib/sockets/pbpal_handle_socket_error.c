@@ -67,6 +67,10 @@ enum pubnub_res pbpal_handle_socket_error(int socket_result,
         }
         else {
             pb->sock_state = STATE_NONE;
+//
+            printf("-----------> reported_error_from_environment_time='%lu'\n",
+                   (unsigned long)time(NULL));
+//
             pbpal_report_error_from_environment(pb, file, line);
             return socket_timed_out() ? PNR_CONNECTION_TIMEOUT : PNR_IO_ERROR;
         }
