@@ -610,20 +610,6 @@ next_state:
         case pbpal_connect_wouldblock:
             break;
         case pbpal_connect_success:
-//
-            {
-                int error_code = 0;
-                int error_code_size = sizeof(error_code);
-                if (getsockopt(pb->pal.socket,
-                               SOL_SOCKET,
-                               SO_ERROR,
-                               &error_code,
-                               (socklen_t*)&error_code_size) < 0) {
-                    puts("------>getsockopt() < 0");
-                }
-                printf("------>pb->pal.socket - error_code=%d\n", error_code);
-            }
-//
             pb->state = PBS_CONNECTED;
             goto next_state;
         default:

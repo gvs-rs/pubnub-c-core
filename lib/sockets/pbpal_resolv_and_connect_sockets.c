@@ -565,6 +565,38 @@ enum pbpal_resolv_n_connect_result pbpal_check_connect(pubnub_t* pb)
 
     PUBNUB_ASSERT(pb_valid_ctx_ptr(pb));
     PUBNUB_ASSERT_OPT(pb->state == PBS_WAIT_CONNECT);
+//
+    {
+        unsigned long tt = (unsigned long)time(NULL);
+        int error_code = 0;
+        int error_code_size = sizeof(error_code);
+        if (getsockopt(pb->pal.socket,
+                       SOL_SOCKET,
+                       SO_ERROR,
+                       &error_code,
+                       (socklen_t*)&error_code_size) < 0) {
+            puts("------>getsockopt() < 0");
+        }
+        printf("------>pb->pal.socket - error_code=%d\n", error_code);
+        if (error_code != 0) {
+            printf("-----------> connect_failed_time='%lu'\n", tt);
+#if PUBNUB_USE_MULTIPLE_ADDRESSES
+            pb->flags.retry_after_close =
+                (++pb->spare_addresses.ipv4_index < pb->spare_addresses.n_ipv4);
+#if PUBNUB_USE_IPV6
+            if (!pb->flags.retry_after_close) {
+                pb->flags.retry_after_close =
+                    (++pb->spare_addresses.ipv6_index < pb->spare_addresses.n_ipv6);
+            }
+#endif
+#if PUBNUB_USE_SSL
+            pb->flags.trySSL = pb->options.useSSL;
+#endif
+#endif /* PUBNUB_USE_MULTIPLE_ADDRESSES */
+            return pbpal_connect_failed;
+        }
+    }
+//
 
     FD_ZERO(&write_set);
     FD_SET(pb->pal.socket, &write_set);
