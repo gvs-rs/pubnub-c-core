@@ -192,6 +192,8 @@ int pbpal_ntf_poll_away(struct pbpal_poll_data* data, int ms)
             }
 //
             else if (data->apoll[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                int error_code = 0;
+                int error_code_size = sizeof(error_code);
                 unsigned long tt = (unsigned long)time(NULL);
                 switch (data->apoll[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
                 case POLLERR:
@@ -204,6 +206,14 @@ int pbpal_ntf_poll_away(struct pbpal_poll_data* data, int ms)
                     printf("time='%lu'---> data->apoll[i].revents & POLLNVAL\n", tt);
                     break;
                 }
+                if (getsockopt(data->apoll[i].fd,
+                               SOL_SOCKET,
+                               SO_ERROR,
+                               &error_code,
+                               (socklen_t*)&error_code_size) < 0) {
+                    puts("------>getsockopt() < 0");
+                }
+                printf("------>data->apoll[i].fd - error_code=%d\n", error_code);
             }
 //
         }
