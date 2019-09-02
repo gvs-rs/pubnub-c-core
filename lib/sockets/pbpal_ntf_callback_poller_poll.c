@@ -187,22 +187,6 @@ int pbpal_ntf_poll_away(struct pbpal_poll_data* data, int ms)
             if (data->apoll[i].revents & (POLLIN | POLLOUT | POLLERR | POLLHUP | POLLNVAL)) {
                 pbntf_requeue_for_processing(data->apb[i]);
             }
-/*
-            else if (data->apoll[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                unsigned long tt = (unsigned long)time(NULL);
-                switch (data->apoll[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-                case POLLERR:
-                    printf("time='%lu'---> data->apoll[i].revents & POLLERR\n", tt);
-                    break;
-                case POLLHUP:
-                    printf("time='%lu'---> data->apoll[i].revents & POLLHUP\n", tt);
-                    break;
-                default:
-                    printf("time='%lu'---> data->apoll[i].revents & POLLNVAL\n", tt);
-                    break;
-                }
-            }
-*/
         }
     }
 

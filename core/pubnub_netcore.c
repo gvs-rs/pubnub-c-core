@@ -613,16 +613,12 @@ next_state:
             pb->state = PBS_CONNECTED;
             goto next_state;
         default:
-            pbpal_report_error_from_environment(pb, __FILE__, __LINE__);
             outcome_detected(pb, PNR_CONNECT_FAILED);
             break;
         }
         break;
     }
     case PBS_CONNECTED:
-//
-        printf("-----------> connected_time='%lu'\n", (unsigned long)time(NULL));
-//
         pb->flags.should_close = !pb->options.use_http_keep_alive;
 #if PUBNUB_NEED_RETRY_AFTER_CLOSE
         pb->flags.retry_after_close = false;
