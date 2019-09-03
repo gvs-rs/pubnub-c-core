@@ -701,17 +701,11 @@ public:
         return doit(pubnub_publish_ex(d_pb, channel.c_str(), message.c_str(), opt.data()));
     }
 
-    /// Sends a signal @p message on the @p channel via chosen @p method.
-    /// (Method GET by default).
+    /// Sends a signal @p message on the @p channel.
     /// @see pubnub_signal
-    futres signal(std::string const& channel,
-                  std::string const& message,
-                  pubnub_method method=pubnubSendViaGET)
+    futres signal(std::string const& channel, std::string const& message)
     {
-        return doit(pubnub_signal(d_pb,
-                                  channel.c_str(),
-                                  method,
-                                  message.c_str()));
+        return doit(pubnub_signal(d_pb, channel.c_str(), message.c_str()));
     }
     
 #if PUBNUB_CRYPTO_API

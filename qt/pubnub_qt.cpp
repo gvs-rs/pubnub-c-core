@@ -115,18 +115,23 @@ pubnub_res pubnub_qt::startRequest(pubnub_res result, pubnub_trans transaction)
             req.setRawHeader("Connection", "Close");
         }
         switch (transaction) {
-        case PBTT_PUBLISH:
-        case PBTT_SIGNAL:
 #if PUBNUB_USE_OBJECTS_API
+        case PBTT_DELETE_USER:
+        case PBTT_DELETE_SPACE:
+             d_reply.reset(d_qnam.deleteResource(req));
+             break;
         case PBTT_CREATE_USER:
         case PBTT_UPDATE_USER:
-        case PBTT_DELETE_USER:
         case PBTT_CREATE_SPACE:
         case PBTT_UPDATE_SPACE:
-        case PBTT_DELETE_SPACE:
+        case PBTT_ADD_USERS_SPACE_MEMBERSHIPS:
         case PBTT_UPDATE_USERS_SPACE_MEMBERSHIPS:
+        case PBTT_REMOVE_USERS_SPACE_MEMBERSHIPS:
+        case PBTT_ADD_MEMBERS_IN_SPACE:
         case PBTT_UPDATE_MEMBERS_IN_SPACE:
+        case PBTT_REMOVE_MEMBERS_IN_SPACE:
 #endif /* PUBNUB_USE_OBJECTS_API */
+        case PBTT_PUBLISH:
             switch (d_method) {
             case pubnubSendViaPOSTwithGZIP:
             case pubnubUsePATCHwithGZIP:
@@ -144,9 +149,6 @@ pubnub_res pubnub_qt::startRequest(pubnub_res result, pubnub_trans transaction)
                 break;
             case pubnubSendViaGET:
                 d_reply.reset(d_qnam.get(req));
-                break;
-            case pubnubUseDELETE:
-                d_reply.reset(d_qnam.deleteResource(req));
                 break;
             default:
                 break;
@@ -338,24 +340,12 @@ pubnub_res pubnub_qt::publish_via_post_with_gzip(QString const&    channel,
 }
 
 
-pubnub_res pubnub_qt::signal(QString const& channel,
-                             QByteArray const& message,
-                             pubnub_method method)
+pubnub_res pubnub_qt::signal(QString const& channel, QByteArray const& message)
 {
-    QMutexLocker lk(&d_mutex);
-    if (pubnubSendViaGET == method) {
-        d_method = method;
-    }
-    else {
-        d_message_to_send = message;
-        d_method = pubnubSendViaPOST;
-    }
+    KEEP_THREAD_SAFE();
     return startRequest(pbcc_signal_prep(d_context.data(),
                                          channel.toLatin1().data(),
-                                         d_method,
-                                         (pubnubSendViaGET == method)
-                                         ? message.data()
-                                         : d_message_to_send.data()),
+                                         message.data()),
                         PBTT_SIGNAL);
 }
 
@@ -730,7 +720,6 @@ pubnub_res pubnub_qt::update_user(QByteArray const& user_obj, QStringList& inclu
 pubnub_res pubnub_qt::delete_user(QString const& user_id)
 {
     KEEP_THREAD_SAFE();
-    d_method = pubnubUseDELETE;
     return startRequest(
         pbcc_delete_user_prep(d_context.data(),
                               user_id.toLatin1().data()),
@@ -814,7 +803,6 @@ pubnub_res pubnub_qt::update_space(QByteArray const& space_obj, QStringList& inc
 pubnub_res pubnub_qt::delete_space(QString const& space_id)
 {
     KEEP_THREAD_SAFE();
-    d_method = pubnubUseDELETE;
     return startRequest(
         pbcc_delete_space_prep(d_context.data(),
                                space_id.toLatin1().data()),

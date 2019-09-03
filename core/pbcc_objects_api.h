@@ -160,8 +160,8 @@ enum pubnub_res pbcc_update_members_in_space_prep(struct pbcc_context* pb,
 /** Parses server response simply on any 'Objects API' transaction request.
     If transaction is successful, the response(a JSON object) will have key
     "data" with corresponding value. If not, there should be "error" key 'holding'
-    error description. If there is neither of two keys mentioned function returns
-    response format error.
+    error description. If there is neither of the two keys mentioned function
+    returns response format error.
     Complete answer will be available via pubnub_get().
 
     @retval PNR_OK on success
