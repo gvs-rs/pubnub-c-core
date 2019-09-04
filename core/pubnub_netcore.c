@@ -508,6 +508,9 @@ next_state:
             break;
         case pbpal_connect_wouldblock:
             i         = pbntf_got_socket(pb);
+            if (i >= 0) {
+                pbntf_switch_timers(pb);
+            }
             pb->state = PBS_WAIT_CONNECT;
             break;
         case pbpal_connect_success:
@@ -553,6 +556,7 @@ next_state:
             pbntf_watch_in_events(pb);
             break;
         case pbpal_connect_wouldblock:
+            pbntf_switch_timers(pb);
             pbntf_update_socket(pb);
             pb->state = PBS_WAIT_CONNECT;
             break;
@@ -580,6 +584,7 @@ next_state:
         case pbpal_resolv_rcv_wouldblock:
             break;
         case pbpal_connect_wouldblock:
+            pbntf_switch_timers(pb);
             pbntf_update_socket(pb);
             pb->state = PBS_WAIT_CONNECT;
             pbntf_watch_out_events(pb);
@@ -604,15 +609,17 @@ next_state:
         case pbpal_resolv_send_wouldblock:
         case pbpal_resolv_sent:
         case pbpal_resolv_rcv_wouldblock:
-            pb->core.last_result = PNR_INTERNAL_ERROR;
-            pbntf_trans_outcome(pb, PBS_IDLE);
+            pbntf_switch_timers(pb);
+            outcome_detected(pb, PNR_INTERNAL_ERROR);
             break;
         case pbpal_connect_wouldblock:
             break;
         case pbpal_connect_success:
+            pbntf_switch_timers(pb);
             pb->state = PBS_CONNECTED;
             goto next_state;
         default:
+            pbntf_switch_timers(pb);
             outcome_detected(pb, PNR_CONNECT_FAILED);
             break;
         }
@@ -1328,6 +1335,23 @@ void pbnc_stop(struct pubnub_* pbp, enum pubnub_res outcome_to_report)
     switch (pbp->state) {
     case PBS_WAIT_CANCEL:
     case PBS_WAIT_CANCEL_CLOSE:
+        break;
+    case PBS_WAIT_CONNECT:
+        pbp->state = PBS_WAIT_CANCEL;
+        if (PUBNUB_TIMERS_API) {
+            /** Switching timeouts back to normal */
+            int timeout_ms = pbp->transaction_timeout_ms;
+            pbp->transaction_timeout_ms = pbp->wait_connect_timeout_ms;
+            pbp->wait_connect_timeout_ms = timeout_ms;
+        }
+        if (PNR_TIMEOUT == outcome_to_report) {
+            pbp->core.last_result = PNR_WAIT_CONNECT_TIMEOUT;
+        }
+#if defined(PUBNUB_CALLBACK_API)
+        pbntf_requeue_for_processing(pbp);
+#else
+        pbnc_fsm(pbp);
+#endif
         break;
     case PBS_NULL:
         PUBNUB_LOG_ERROR("pbnc_stop(pbp=%p) got called in NULL state\n", pbp);

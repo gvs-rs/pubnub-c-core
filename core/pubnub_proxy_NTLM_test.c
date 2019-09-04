@@ -483,6 +483,13 @@ void pbntf_update_socket(pubnub_t* pb)
     mock("pbntf_update_socket", pb, "");
 }
 
+void pbntf_switch_timers(pubnub_t* pb)
+{
+    int timeout_ms = pb->transaction_timeout_ms;
+    pb->transaction_timeout_ms = pb->wait_connect_timeout_ms;
+    pb->wait_connect_timeout_ms = timeout_ms;
+}
+
 int pbntf_requeue_for_processing(pubnub_t* pb)
 {
     return mock("pbntf_requeue_for_processing", pb, "");

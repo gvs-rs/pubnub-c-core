@@ -348,6 +348,9 @@ struct pubnub_ {
     /** Duration of the transaction timeout, in milliseconds */
     int transaction_timeout_ms;
 
+    /** Duration of the 'wait_connect_TCP_socket' timeout, in milliseconds */
+    int wait_connect_timeout_ms;
+
 #if defined(PUBNUB_CALLBACK_API)
     struct pubnub_* previous;
     struct pubnub_* next;
@@ -467,6 +470,14 @@ int pbntf_init(void);
 int pbntf_got_socket(pubnub_t* pb);
 
 void pbntf_update_socket(pubnub_t* pb);
+
+/** If pubnub timers API is set, removes timer running on the context, switching
+    values saved between 'wait_connect_TCP_socket' and transaction timouts and
+    enqueuing replaced timer. Anotherwords, if transaction timer was running on
+    the context it will be removed and 'wait_connect_TCP_socket' timer will be
+    started(enqueued) instead and other way around.
+*/
+void pbntf_switch_timers(pubnub_t* pb);
 
 void pbntf_lost_socket(pubnub_t* pb);
 
