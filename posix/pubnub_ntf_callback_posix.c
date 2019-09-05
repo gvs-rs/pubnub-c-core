@@ -294,6 +294,17 @@ void pbntf_switch_timers(pubnub_t* pb)
 }
 
 
+void pbntf_restart_timer(pubnub_t* pb)
+{
+    if (PUBNUB_TIMERS_API) {
+        pthread_mutex_lock(&m_watcher.timerlock);
+        pbpal_remove_timer_safe(pb, &m_watcher.timer_head);
+        m_watcher.timer_head = pubnub_timer_list_add(m_watcher.timer_head, pb);
+        pthread_mutex_unlock(&m_watcher.timerlock);
+    }
+}
+
+
 void pbntf_update_socket(pubnub_t* pb)
 {
     pthread_mutex_lock(&m_watcher.mutw);

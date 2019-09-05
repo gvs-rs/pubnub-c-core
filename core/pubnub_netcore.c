@@ -498,11 +498,17 @@ next_state:
         switch (rslv) {
         case pbpal_resolv_send_wouldblock:
             i         = pbntf_got_socket(pb);
+            if (i >= 0) {
+                pbntf_switch_timers(pb);
+            }
             pb->state = PBS_WAIT_DNS_SEND;
             break;
         case pbpal_resolv_sent:
         case pbpal_resolv_rcv_wouldblock:
             i         = pbntf_got_socket(pb);
+            if (i >= 0) {
+                pbntf_switch_timers(pb);
+            }
             pb->state = PBS_WAIT_DNS_RCV;
             pbntf_watch_in_events(pb);
             break;
@@ -556,16 +562,18 @@ next_state:
             pbntf_watch_in_events(pb);
             break;
         case pbpal_connect_wouldblock:
-            pbntf_switch_timers(pb);
+            pbntf_restart_timer(pb);
             pbntf_update_socket(pb);
             pb->state = PBS_WAIT_CONNECT;
             break;
         case pbpal_connect_success:
+            pbntf_switch_timers(pb);
             pbntf_update_socket(pb);
             pb->state = PBS_CONNECTED;
             goto next_state;
         default:
             pbpal_report_error_from_environment(pb, __FILE__, __LINE__);
+            pbntf_switch_timers(pb);
             pbntf_update_socket(pb);
             outcome_detected(pb, PNR_ADDR_RESOLUTION_FAILED);
             break;
@@ -579,23 +587,26 @@ next_state:
         switch (rslv) {
         case pbpal_resolv_send_wouldblock:
         case pbpal_resolv_sent:
+            pbntf_switch_timers(pb);
             outcome_detected(pb, PNR_INTERNAL_ERROR);
             break;
         case pbpal_resolv_rcv_wouldblock:
             break;
         case pbpal_connect_wouldblock:
-            pbntf_switch_timers(pb);
+            pbntf_restart_timer(pb);
             pbntf_update_socket(pb);
             pb->state = PBS_WAIT_CONNECT;
             pbntf_watch_out_events(pb);
             break;
         case pbpal_connect_success:
+            pbntf_switch_timers(pb);
             pbntf_update_socket(pb);
             pb->state = PBS_CONNECTED;
             pbntf_watch_out_events(pb);
             goto next_state;
         default:
             pbpal_report_error_from_environment(pb, __FILE__, __LINE__);
+            pbntf_switch_timers(pb);
             pbntf_update_socket(pb);
             outcome_detected(pb, PNR_ADDR_RESOLUTION_FAILED);
             break;
@@ -1336,8 +1347,9 @@ void pbnc_stop(struct pubnub_* pbp, enum pubnub_res outcome_to_report)
     case PBS_WAIT_CANCEL:
     case PBS_WAIT_CANCEL_CLOSE:
         break;
+    case PBS_WAIT_DNS_SEND:
+    case PBS_WAIT_DNS_RCV:
     case PBS_WAIT_CONNECT:
-        pbp->state = PBS_WAIT_CANCEL;
         if (PUBNUB_TIMERS_API) {
             /** Switching timeouts back to normal */
             int timeout_ms = pbp->transaction_timeout_ms;
@@ -1345,8 +1357,10 @@ void pbnc_stop(struct pubnub_* pbp, enum pubnub_res outcome_to_report)
             pbp->wait_connect_timeout_ms = timeout_ms;
         }
         if (PNR_TIMEOUT == outcome_to_report) {
-            pbp->core.last_result = PNR_WAIT_CONNECT_TIMEOUT;
+            pbp->core.last_result = (PBS_WAIT_CONNECT == pbp->state) ? PNR_WAIT_CONNECT_TIMEOUT
+                                                                     : PNR_ADDR_RESOLUTION_FAILED;
         }
+        pbp->state = PBS_WAIT_CANCEL;
 #if defined(PUBNUB_CALLBACK_API)
         pbntf_requeue_for_processing(pbp);
 #else

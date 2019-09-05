@@ -479,6 +479,9 @@ void pbntf_update_socket(pubnub_t* pb);
 */
 void pbntf_switch_timers(pubnub_t* pb);
 
+/** Restarts timer running on context @p p */
+void pbntf_restart_timer(pubnub_t* pb);
+
 void pbntf_lost_socket(pubnub_t* pb);
 
 int pbntf_enqueue_for_processing(pubnub_t* pb);

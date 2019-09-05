@@ -490,6 +490,11 @@ void pbntf_switch_timers(pubnub_t* pb)
     pb->wait_connect_timeout_ms = timeout_ms;
 }
 
+void pbntf_restart_timer(pubnub_t* pb)
+{
+    /* At some point this might be mocked */
+}
+
 int pbntf_requeue_for_processing(pubnub_t* pb)
 {
     return mock("pbntf_requeue_for_processing", pb, "");

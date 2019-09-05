@@ -40,6 +40,12 @@ void pbntf_switch_timers(pubnub_t* pb)
 }
 
 
+void pbntf_restart_timer(pubnub_t* pb)
+{
+    PUBNUB_UNUSED(pb);
+}
+
+
 void pbntf_lost_socket(pubnub_t* pb)
 {
     PUBNUB_UNUSED(pb);

@@ -18,11 +18,15 @@ int pubnub_set_transaction_timeout(pubnub_t* p, int duration_ms)
             duration_ms);
     }
     pubnub_mutex_lock(p->monitor);
-    if (PBS_WAIT_CONNECT == p->state) {
+    switch (p->state) {
+    case PBS_WAIT_DNS_SEND:
+    case PBS_WAIT_DNS_RCV:
+    case PBS_WAIT_CONNECT:
         p->wait_connect_timeout_ms = duration_ms;
-    }
-    else {
+        break;
+    default:
         p->transaction_timeout_ms = duration_ms;
+        break;
     }
     pubnub_mutex_unlock(p->monitor);
     return 0;
@@ -41,11 +45,15 @@ int pubnub_set_wait_connect_timeout(pubnub_t* p, int duration_ms)
             duration_ms);
     }
     pubnub_mutex_lock(p->monitor);
-    if (PBS_WAIT_CONNECT == p->state) {
+    switch (p->state) {
+    case PBS_WAIT_DNS_SEND:
+    case PBS_WAIT_DNS_RCV:
+    case PBS_WAIT_CONNECT:
         p->transaction_timeout_ms = duration_ms;
-    }
-    else {
+        break;
+    default:
         p->wait_connect_timeout_ms = duration_ms;
+        break;
     }
     pubnub_mutex_unlock(p->monitor);
     return 0;
@@ -58,8 +66,16 @@ int pubnub_transaction_timeout_get(pubnub_t* p)
 
     PUBNUB_ASSERT_OPT(p != NULL);
     pubnub_mutex_lock(p->monitor);
-    timeout_ms = (PBS_WAIT_CONNECT == p->state) ? p->wait_connect_timeout_ms :
-                                                  p->transaction_timeout_ms;
+    switch (p->state) {
+    case PBS_WAIT_DNS_SEND:
+    case PBS_WAIT_DNS_RCV:
+    case PBS_WAIT_CONNECT:
+        timeout_ms = p->wait_connect_timeout_ms;
+        break;
+    default:
+        timeout_ms = p->transaction_timeout_ms;
+        break;
+    }
     pubnub_mutex_unlock(p->monitor);
 
     return timeout_ms;
@@ -72,8 +88,16 @@ int pubnub_wait_connect_timeout_get(pubnub_t* p)
 
     PUBNUB_ASSERT_OPT(p != NULL);
     pubnub_mutex_lock(p->monitor);
-    timeout_ms = (PBS_WAIT_CONNECT == p->state) ? p->transaction_timeout_ms :
-                                                  p->wait_connect_timeout_ms;
+    switch (p->state) {
+    case PBS_WAIT_DNS_SEND:
+    case PBS_WAIT_DNS_RCV:
+    case PBS_WAIT_CONNECT:
+        timeout_ms = p->transaction_timeout_ms;
+        break;
+    default:
+        timeout_ms = p->wait_connect_timeout_ms;
+        break;
+    }
     pubnub_mutex_unlock(p->monitor);
 
     return timeout_ms;
