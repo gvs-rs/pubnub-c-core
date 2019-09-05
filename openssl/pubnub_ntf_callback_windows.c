@@ -176,6 +176,26 @@ void pbntf_lost_socket(pubnub_t* pb)
 }
 
 
+void pbntf_switch_timers(pubnub_t* pb)
+{
+    if (PUBNUB_TIMERS_API) {
+        int timeout_ms;
+
+        EnterCriticalSection(&m_watcher.timerlock);
+        pbpal_remove_timer_safe(pb, &m_watcher.timer_head);
+        LeaveCriticalSection(&m_watcher.timerlock);
+
+        timeout_ms                  = pb->transaction_timeout_ms;
+        pb->transaction_timeout_ms  = pb->wait_connect_timeout_ms;
+        pb->wait_connect_timeout_ms = timeout_ms;
+
+        EnterCriticalSection(&m_watcher.timerlock);
+        m_watcher.timer_head = pubnub_timer_list_add(m_watcher.timer_head, pb);
+        LeaveCriticalSection(&m_watcher.timerlock);
+    }
+}
+
+
 void pbntf_update_socket(pubnub_t* pb)
 {
     EnterCriticalSection(&m_watcher.mutw);
