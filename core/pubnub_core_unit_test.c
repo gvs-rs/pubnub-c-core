@@ -95,16 +95,14 @@ void pbntf_update_socket(pubnub_t* pb)
     mock(pb);
 }
 
-void pbntf_switch_timers(pubnub_t* pb)
+void pbntf_start_wait_connect_timer(pubnub_t* pb)
 {
-    int timeout_ms = pb->transaction_timeout_ms;
-    pb->transaction_timeout_ms = pb->wait_connect_timeout_ms;
-    pb->wait_connect_timeout_ms = timeout_ms;
+    /* This might be mocked at some point */
 }
 
-void pbntf_restart_timer(pubnub_t* pb)
+void pbntf_start_transaction_timer(pubnub_t* pb)
 {
-    /* At some point this might be mocked */
+    /* This might be mocked at some point */
 }
 
 int pbntf_requeue_for_processing(pubnub_t* pb)

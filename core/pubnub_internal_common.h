@@ -471,16 +471,11 @@ int pbntf_got_socket(pubnub_t* pb);
 
 void pbntf_update_socket(pubnub_t* pb);
 
-/** If pubnub timers API is set, removes timer running on the context, switching
-    values saved between 'wait_connect_TCP_socket' and transaction timouts and
-    enqueuing replaced timer. Anotherwords, if transaction timer was running on
-    the context it will be removed and 'wait_connect_TCP_socket' timer will be
-    started(enqueued) instead and other way around.
-*/
-void pbntf_switch_timers(pubnub_t* pb);
+/** Removes timer running on the context @p p and starts the one for 'wait_connect_TCP_socket' */
+void pbntf_start_wait_connect_timer(pubnub_t* pb);
 
-/** Restarts timer running on context @p p */
-void pbntf_restart_timer(pubnub_t* pb);
+/** Removes timer running on the context @p p and starts the one for 'transaction' */
+void pbntf_start_transaction_timer(pubnub_t* pb);
 
 void pbntf_lost_socket(pubnub_t* pb);
 

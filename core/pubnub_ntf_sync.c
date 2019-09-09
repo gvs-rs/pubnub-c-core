@@ -32,15 +32,13 @@ void pbntf_update_socket(pubnub_t* pb)
 }
 
 
-void pbntf_switch_timers(pubnub_t* pb)
+void pbntf_start_transaction_timer(pubnub_t* pb)
 {
-    int timeout_ms = pb->transaction_timeout_ms;
-    pb->transaction_timeout_ms = pb->wait_connect_timeout_ms;
-    pb->wait_connect_timeout_ms = timeout_ms;
+    PUBNUB_UNUSED(pb);
 }
 
 
-void pbntf_restart_timer(pubnub_t* pb)
+void pbntf_start_wait_connect_timer(pubnub_t* pb)
 {
     PUBNUB_UNUSED(pb);
 }

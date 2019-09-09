@@ -163,6 +163,11 @@ int pbpal_ntf_poll_away(struct pbpal_poll_data* data, int ms)
     int rslt;
 
     if (0 == data->size) {
+#if defined(_WIN32)
+        Sleep(1);
+#else
+        usleep(1000);
+#endif
         return 0;
     }
 
