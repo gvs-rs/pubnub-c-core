@@ -214,6 +214,15 @@ enum pubnub_res pubnub_fetch_users_space_memberships(pubnub_t* pb,
 
 /** Adds the space memberships of the user specified by @p user_id. Uses the `add` property
     to perform those operations on one, or more memberships.
+    An example for @update_obj:
+       [
+         {
+           "id": "main-space-id"
+         },
+         {
+           "id": "space-0"
+         }
+       ]
 
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
@@ -233,6 +242,21 @@ enum pubnub_res pubnub_add_users_space_memberships(pubnub_t* pb,
 
 /** Updates the space memberships of the user specified by @p user_id. Uses the `update` property
     to perform those operations on one, or more memberships.
+    An example for @update_obj:
+       [
+         {
+           "id": "main-space-id",
+           "custom": {
+             "starred": true
+           }
+         },
+         {
+           "id": "space-0",
+            "some_key": {
+              "other_key": "other_value"
+            }
+         }
+       ]
 
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
@@ -252,6 +276,18 @@ enum pubnub_res pubnub_update_users_space_memberships(pubnub_t* pb,
 
 /** Removes the space memberships of the user specified by @p user_id. Uses the `remove` property
     to perform those operations on one, or more memberships.
+    An example for @update_obj:
+      [
+        {
+          "id": "main-space-id",
+          "custom": {
+            "starred": true
+          }
+        },
+        {
+          "id": "space-0"
+        }
+      ]
 
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
@@ -301,6 +337,16 @@ enum pubnub_res pubnub_fetch_members_in_space(pubnub_t* pb,
 
 /** Adds the list of members of the space specified with @p space_id. Uses the `add`
     property to perform the operation on one or more members.
+    An example for @update_obj:
+       [
+         {
+           "id": "some-user-id"
+         },
+         {
+           "id": "user-0-id"
+         }
+       ]
+
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
                    Use NULL if you don't want to retrieve additional attributes.
@@ -310,14 +356,30 @@ enum pubnub_res pubnub_fetch_members_in_space(pubnub_t* pb,
     @return #PNR_STARTED on success, an error otherwise
   */
 enum pubnub_res pubnub_add_members_in_space(pubnub_t* pb, 
-                                               char const* space_id,
-                                               char const** include,
-                                               size_t include_count,
-                                               char const* update_obj);
+                                            char const* space_id,
+                                            char const** include,
+                                            size_t include_count,
+                                            char const* update_obj);
 
 
 /** Updates the list of members of the space specified with @p space_id. Uses the `update`
     property to perform the operation on one or more members.
+    An example for @update_obj:
+       [
+         {
+           "id": "some-user-id",
+           "custom": {
+             "starred": true
+           }
+         },
+         {
+           "id": "user-0-id",
+            "some_key": {
+              "other_key": "other_value"
+            }
+         }
+       ]
+
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
                    Use NULL if you don't want to retrieve additional attributes.
@@ -335,6 +397,19 @@ enum pubnub_res pubnub_update_members_in_space(pubnub_t* pb,
 
 /** Removes the list of members of the space specified with @p space_id. Uses the `remove`
     property to perform the operation on one or more members.
+    An example for @update_obj:
+      [
+        {
+          "id": "some-user-id",
+          "custom": {
+            "starred": true
+          }
+        },
+        {
+          "id": "user-0-id"
+        }
+      ]
+
     @param pb The pubnub context. Can't be NULL
     @param include array of (C) strings with additional/complex attributes to include in response.
                    Use NULL if you don't want to retrieve additional attributes.

@@ -201,6 +201,7 @@ enum pubnub_res pbcc_fetch_user_prep(struct pbcc_context* pb,
     }
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/users/%s",
@@ -228,6 +229,7 @@ enum pubnub_res pbcc_update_user_prep(struct pbcc_context* pb,
     PUBNUB_ASSERT_OPT(user_obj != NULL);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/users/%.*s",
@@ -259,6 +261,7 @@ enum pubnub_res pbcc_delete_user_prep(struct pbcc_context* pb, char const* user_
     }
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/users/%s",
@@ -284,9 +287,10 @@ enum pubnub_res pbcc_fetch_all_spaces_prep(struct pbcc_context* pb,
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
 
-    PUBNUB_ASSERT_OPT(limit > MAX_OBJECTS_LIMIT);
+    PUBNUB_ASSERT_OPT(limit < MAX_OBJECTS_LIMIT);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/spaces",
@@ -320,6 +324,7 @@ enum pubnub_res pbcc_create_space_prep(struct pbcc_context* pb,
     PUBNUB_ASSERT_OPT(space_obj != NULL);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/spaces",
@@ -353,6 +358,7 @@ enum pubnub_res pbcc_fetch_space_prep(struct pbcc_context* pb,
     }
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/spaces/%s",
@@ -380,6 +386,7 @@ enum pubnub_res pbcc_update_space_prep(struct pbcc_context* pb,
     PUBNUB_ASSERT_OPT(space_obj != NULL);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/spaces/%.*s",
@@ -411,6 +418,7 @@ enum pubnub_res pbcc_delete_space_prep(struct pbcc_context* pb, char const* spac
     }
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/spaces/%s",
@@ -437,9 +445,10 @@ enum pubnub_res pbcc_fetch_users_space_memberships_prep(struct pbcc_context* pb,
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
 
-    PUBNUB_ASSERT_OPT(limit > MAX_OBJECTS_LIMIT);
+    PUBNUB_ASSERT_OPT(limit < MAX_OBJECTS_LIMIT);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/users/%s/spaces",
@@ -475,6 +484,7 @@ enum pubnub_res pbcc_update_users_space_memberships_prep(struct pbcc_context* pb
     PUBNUB_ASSERT_OPT(update_obj != NULL);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/users/%s/spaces",
@@ -504,9 +514,10 @@ enum pubnub_res pbcc_fetch_members_in_space_prep(struct pbcc_context* pb,
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
 
-    PUBNUB_ASSERT_OPT(limit > MAX_OBJECTS_LIMIT);
+    PUBNUB_ASSERT_OPT(limit < MAX_OBJECTS_LIMIT);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/spaces/%s/users",
@@ -542,6 +553,7 @@ enum pubnub_res pbcc_update_members_in_space_prep(struct pbcc_context* pb,
     PUBNUB_ASSERT_OPT(update_obj != NULL);
 
     pb->http_content_len = 0;
+    pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "/v1/objects/%s/spaces/%s/users",
@@ -571,8 +583,9 @@ enum pubnub_res pbcc_parse_objects_api_response(struct pbcc_context* pb)
     }
 
     pb->chan_ofs = pb->chan_end = 0;
-    pb->msg_ofs = pb->msg_end = 0;
-
+    pb->msg_ofs = 0;
+    pb->msg_end = replylen + 1;
+    
     elem.end = pbjson_find_end_element(reply, reply + replylen);
     /* elem.end has to be just behind end curly brace */
     if ((*reply != '{') || (*(elem.end++) != '}')) {
@@ -609,7 +622,7 @@ enum pubnub_res pbcc_parse_objects_api_response(struct pbcc_context* pb)
 
         return PNR_FORMAT_ERROR;
     }
-    PUBNUB_LOG_WARNING("pbcc_parse_objects_api_response(): \"data\"='%.*s'\n",
+    PUBNUB_LOG_TRACE("pbcc_parse_objects_api_response(): \"data\"='%.*s'\n",
                      (int)(parsed.end - parsed.start),
                      parsed.start);
 

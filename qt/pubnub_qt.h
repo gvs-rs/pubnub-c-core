@@ -46,6 +46,10 @@ public:
     include_options()
         : d_include_count(0)
     {}
+    const char** include_c_strings_array()
+    {
+        return (d_include_count > 0) ? (const char**)d_include_c_strings_array : 0;
+    }
     const char** include_to_c_strings_array(QStringList const& inc)
     {
         size_t n = inc.size();
@@ -60,17 +64,13 @@ public:
             strcpy(d_include_c_strings_array[i], inc[i].toLatin1().data());
         }
         d_include_count = n;
-        return (const char**)d_include_c_strings_array;
+        return include_c_strings_array();
     }
     include_options(QStringList const& inc)
     {
         include_to_c_strings_array(inc);
     }
     size_t include_count() { return d_include_count; }
-    const char** include_c_strings_array()
-    {
-        return (const char**)d_include_c_strings_array;
-    }
 };
     
 /** A wrapper class for objects api options for manipulating specified requirements
@@ -103,13 +103,13 @@ public:
         d_start = st;
         return *this;
     }
-    QString start() { return d_start; }
+    char const* start() { return d_start.isEmpty() ? 0 : d_start.toLatin1().data(); }
     list_options& end(QString const& e)
     {
         d_end = e;
         return *this;
     }
-    QString end() { return d_end; }
+    char const* end() { return d_end.isEmpty() ? 0 : d_end.toLatin1().data(); }
     list_options& count(tribool co)
     {
         d_count = co;
@@ -1516,10 +1516,10 @@ public:
         An example for @update_obj:
           [
             {
-              "id": "user-1"
+              "id": "user-1-id"
             },
             {
-              "id": "user-2",
+              "id": "user-2-id",
               "custom": {
                 "role": “moderator”
               }
@@ -1549,13 +1549,13 @@ public:
         An example for @update_obj:
           [
             {
-              "id": "user-2",
+              "id": "user-2-id",
               "custom": {
                 "role": “moderator”
               }
             },
             {
-              "id": "user-0"
+              "id": "user-0-id"
             }
           ]
 
@@ -1591,10 +1591,13 @@ public:
         An example for @update_obj:
           [
             {
-              "id": "user-1"
+              "id": "user-1-id"
+              "custom": {
+                "starred": true
+              }
             },
             {
-              "id": "user-2",
+              "id": "user-2-id",
               "custom": {
                 "role": “moderator”
               }
@@ -1624,13 +1627,16 @@ public:
         An example for @update_obj:
           [
             {
-              "id": "user-2",
+              "id": "user-2-id",
               "custom": {
                 "role": “moderator”
               }
             },
             {
-              "id": "user-0"
+              "id": "user-0-id"
+              "custom": {
+                "starred": true
+              }
             }
           ]
 

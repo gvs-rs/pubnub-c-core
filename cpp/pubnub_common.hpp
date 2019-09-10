@@ -381,6 +381,10 @@ public:
     include_options()
         : d_include_count(0)
     {}
+    char const** include_c_strings_array()
+    {
+        return (d_include_count > 0) ? (char const**)d_include_c_strings_array : NULL;
+    }
     char const** include_to_c_strings_array(std::vector<std::string> const& inc)
     {
         size_t n = inc.size();
@@ -395,14 +399,13 @@ public:
             strcpy(d_include_c_strings_array[i], inc[i].c_str());
         }
         d_include_count = n;
-        return (char const**)d_include_c_strings_array;
+        return include_c_strings_array();
     }
     include_options(std::vector<std::string> const& inc)
     {
         include_to_c_strings_array(inc);
     }
     size_t include_count() { return d_include_count; }
-    char const** include_c_strings_array() { return (char const**)d_include_c_strings_array; }
 };
     
 /** A wrapper class for objects api paging option parameters, enabling a nicer
@@ -434,13 +437,13 @@ public:
         d_start = st;
         return *this;
     }
-    std::string start() { return d_start; }
+    char const* start() { return (d_start.size() > 0) ? d_start.c_str() : NULL; }
     list_options& end(std::string const& e)
     {
         d_end = e;
         return *this;
     }
-    std::string end() { return d_end; }
+    char const* end() { return (d_end.size() > 0) ? d_end.c_str() : NULL; }
     list_options& count(tribool co)
     {
         d_count = co;
@@ -1085,8 +1088,8 @@ public:
                         options.include_c_strings_array(),
                         options.include_count(),
                         options.limit(),
-                        (options.start().size() ? options.start().c_str() : NULL),
-                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.start(),
+                        options.end(),
                         options.count()));
     }
 
@@ -1143,8 +1146,8 @@ public:
                         options.include_c_strings_array(),
                         options.include_count(),
                         options.limit(),
-                        (options.start().size() ? options.start().c_str() : NULL),
-                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.start(),
+                        options.end(),
                         options.count()));
     }
 
@@ -1203,8 +1206,8 @@ public:
                         options.include_c_strings_array(),
                         options.include_count(),
                         options.limit(),
-                        (options.start().size() ? options.start().c_str() : NULL),
-                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.start(),
+                        options.end(),
                         options.count()));
     }
 
@@ -1266,8 +1269,8 @@ public:
                         options.include_c_strings_array(),
                         options.include_count(),
                         options.limit(),
-                        (options.start().size() ? options.start().c_str() : NULL),
-                        (options.end().size() ? options.end().c_str() : NULL),
+                        options.start(),
+                        options.end(),
                         options.count()));
     }
 
@@ -1275,8 +1278,8 @@ public:
     /// by @p space_id.
     /// @see pubnub_add_members_in_space
     futres add_members_in_space(std::string const& space_id,
-                                   std::string const& update_obj,
-                                   std::vector<std::string>& include)
+                                std::string const& update_obj,
+                                std::vector<std::string>& include)
     {
         include_options inc(include);
         return doit(pubnub_add_members_in_space(

@@ -145,7 +145,7 @@ pubnub_res pubnub_qt::startRequest(pubnub_res result, pubnub_trans transaction)
                 d_reply.reset(((pubnubSendViaPOST == d_method) ||
                                (pubnubSendViaPOSTwithGZIP == d_method))
                               ? d_qnam.post(req, d_message_to_send)
-                              : d_qnam.put(req, d_message_to_send));
+                              : d_qnam.sendCustomRequest(req, "PATCH", d_message_to_send));
                 break;
             case pubnubSendViaGET:
                 d_reply.reset(d_qnam.get(req));
@@ -652,8 +652,8 @@ pubnub_res pubnub_qt::fetch_all_users(list_options& options)
                                   options.include_c_strings_array(), 
                                   options.include_count(),
                                   options.limit(),
-                                  options.start().isEmpty() ? 0 : options.start().toLatin1().data(),
-                                  options.end().isEmpty() ? 0 : options.end().toLatin1().data(),
+                                  options.start(),
+                                  options.end(),
                                   options.count()),
         PBTT_FETCH_ALL_USERS);
 }
@@ -735,8 +735,8 @@ pubnub_res pubnub_qt::fetch_all_spaces(list_options& options)
                                    options.include_c_strings_array(), 
                                    options.include_count(),
                                    options.limit(),
-                                   options.start().isEmpty() ? 0 : options.start().toLatin1().data(),
-                                   options.end().isEmpty() ? 0 : options.end().toLatin1().data(),
+                                   options.start(),
+                                   options.end(),
                                    options.count()),
         PBTT_FETCH_ALL_SPACES);
 }
@@ -821,8 +821,8 @@ pubnub_res pubnub_qt::fetch_users_space_memberships(QString const& user_id,
             options.include_c_strings_array(),
             options.include_count(),
             options.limit(),
-            options.start().isEmpty() ? 0 : options.start().toLatin1().data(),
-            options.end().isEmpty() ? 0 : options.end().toLatin1().data(),
+            options.start(),
+            options.end(),
             options.count()),
         PBTT_FETCH_USERS_SPACE_MEMBERSHIPS);
 }
@@ -911,8 +911,8 @@ pubnub_res pubnub_qt::fetch_members_in_space(QString const& space_id,
             options.include_c_strings_array(),
             options.include_count(),
             options.limit(),
-            options.start().isEmpty() ? 0 : options.start().toLatin1().data(),
-            options.end().isEmpty() ? 0 : options.end().toLatin1().data(),
+            options.start(),
+            options.end(),
             options.count()),
         PBTT_FETCH_MEMBERS_IN_SPACE);
 }
@@ -1096,8 +1096,6 @@ pubnub_res pubnub_qt::finish(QByteArray const& data, int http_code)
         d_context->http_reply[d_context->http_buf_len] = '\0';
     }
 
-    qDebug() << "finish('" << d_context->http_reply << "')";
-
     switch (d_trans) {
     case PBTT_SUBSCRIBE:
         if (pbcc_parse_subscribe_response(d_context.data()) != 0) {
@@ -1155,9 +1153,13 @@ pubnub_res pubnub_qt::finish(QByteArray const& data, int http_code)
     case PBTT_UPDATE_SPACE:
     case PBTT_DELETE_SPACE:
     case PBTT_FETCH_USERS_SPACE_MEMBERSHIPS:
+    case PBTT_ADD_USERS_SPACE_MEMBERSHIPS:
     case PBTT_UPDATE_USERS_SPACE_MEMBERSHIPS:
+    case PBTT_REMOVE_USERS_SPACE_MEMBERSHIPS:
     case PBTT_FETCH_MEMBERS_IN_SPACE:
+    case PBTT_ADD_MEMBERS_IN_SPACE:
     case PBTT_UPDATE_MEMBERS_IN_SPACE:
+    case PBTT_REMOVE_MEMBERS_IN_SPACE:
         pbres = pbcc_parse_objects_api_response(d_context.data());
         break;
 #endif
