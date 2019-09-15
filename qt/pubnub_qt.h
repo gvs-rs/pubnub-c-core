@@ -75,10 +75,10 @@ public:
     
 /** A wrapper class for objects api options for manipulating specified requirements
     and paged response, enabling a nicer usage. Something like:
-       pbp.fetch_users(list_options().start(last_bookmark));
+       pbp.get_users(list_options().start(last_bookmark));
 
     instead of:
-       pbp.fetch_users(nullopt, nullopt, last_bookmark, “”, nullopt);
+       pbp.get_users(nullopt, nullopt, last_bookmark, “”, nullopt);
   */
 using namespace pubnub;
 class list_options : public include_options {
@@ -1000,7 +1000,7 @@ public:
                        and paginated response
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res fetch_all_users(list_options& options);
+    pubnub_res get_users(list_options& options);
 
     /** Initiates a transaction for creating a user with the attributes specified in
         @p user_obj.
@@ -1061,7 +1061,7 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res fetch_user(QString const& user_id, QStringList& include);
+    pubnub_res get_user(QString const& user_id, QStringList& include);
 
     /** Initiates trnsaction that updates the user object specified with the `id` key
         of the @p user_obj with any new information you provide.
@@ -1133,7 +1133,7 @@ public:
                        and paginated response
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res fetch_all_spaces(list_options& options);
+    pubnub_res get_spaces(list_options& options);
 
     /** Initiates transaction that creates a space with the attributes specified
         in @p space_obj.
@@ -1192,7 +1192,7 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res fetch_space(QString const& space_id, QStringList& include);
+    pubnub_res get_space(QString const& space_id, QStringList& include);
 
     /** Initiates transaction that updates the space specified by the `id` property
         of the @p space_obj.
@@ -1264,7 +1264,7 @@ public:
                        and paginated response
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res fetch_users_space_memberships(QString const& user_id, list_options& options);
+    pubnub_res get_memberships(QString const& user_id, list_options& options);
 
     /** Initiates transaction that adds the space memberships for the user specified
         by @p user_id. Uses the `add` property on the @p update_obj to perform that
@@ -1292,9 +1292,9 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res add_users_space_memberships(QString const& user_id,
-                                           QByteArray const& update_obj,
-                                           QStringList& include);
+    pubnub_res join_spaces(QString const& user_id,
+                           QByteArray const& update_obj,
+                           QStringList& include);
 
     /** Initiates transaction that adds the space memberships for the user specified
         by @p user_id. Uses the `add` property on the @p update_obj to perform that
@@ -1327,12 +1327,10 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res add_users_space_memberships(QString const& user_id,
-                                           QJsonDocument const& update_obj,
-                                           QStringList& include) {
-        return add_users_space_memberships(user_id,
-                                           update_obj.toJson(),
-                                           include);
+    pubnub_res join_spaces(QString const& user_id,
+                           QJsonDocument const& update_obj,
+                           QStringList& include) {
+        return join_spaces(user_id, update_obj.toJson(), include);
     }
 
     /** Initiates transaction that updates the space memberships for the user specified
@@ -1367,9 +1365,9 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res update_users_space_memberships(QString const& user_id,
-                                              QByteArray const& update_obj,
-                                              QStringList& include);
+    pubnub_res update_memberships(QString const& user_id,
+                                  QByteArray const& update_obj,
+                                  QStringList& include);
 
     /** Initiates transaction that updates the space memberships for the user specified
         by @p user_id. Uses the `update` property on the @p update_obj to perform that
@@ -1408,12 +1406,10 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res update_users_space_memberships(QString const& user_id,
-                                              QJsonDocument const& update_obj,
-                                              QStringList& include) {
-        return update_users_space_memberships(user_id,
-                                              update_obj.toJson(),
-                                              include);
+    pubnub_res update_memberships(QString const& user_id,
+                                  QJsonDocument const& update_obj,
+                                  QStringList& include) {
+        return update_memberships(user_id, update_obj.toJson(), include);
     }
 
     /** Initiates transaction that removes the space memberships for the user specified
@@ -1445,9 +1441,9 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res remove_users_space_memberships(QString const& user_id,
-                                              QByteArray const& update_obj,
-                                              QStringList& include);
+    pubnub_res leave_spaces(QString const& user_id,
+                            QByteArray const& update_obj,
+                            QStringList& include);
 
     /** Initiates transaction that removes the space memberships for the user specified
         by @p user_id. Uses the `remove` property on the @p update_obj to perform that
@@ -1486,12 +1482,10 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res remove_users_space_memberships(QString const& user_id,
-                                              QJsonDocument const& update_obj,
-                                              QStringList& include) {
-        return remove_users_space_memberships(user_id,
-                                              update_obj.toJson(),
-                                              include);
+    pubnub_res leave_spaces(QString const& user_id,
+                            QJsonDocument const& update_obj,
+                            QStringList& include) {
+        return leave_spaces(user_id, update_obj.toJson(), include);
     }
 
     /** Initiates transaction that returns all users in the space specified by @p space_id,
@@ -1508,7 +1502,7 @@ public:
                        and paginated response
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res fetch_members_in_space(QString const& space_id, list_options& options);
+    pubnub_res get_members(QString const& space_id, list_options& options);
 
     /** Initiates transaction that adds the list of members to the space specified by
         @p space_id. Use the `add` property on the @p update_obj to perform that
@@ -1539,9 +1533,9 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res add_members_in_space(QString const& space_id,
-                                    QByteArray const& update_obj,
-                                    QStringList& include);
+    pubnub_res add_members(QString const& space_id,
+                           QByteArray const& update_obj,
+                           QStringList& include);
 
     /** Initiates transaction that adds the list of members to the space specified by
         @p space_id. Uses the `add` property on the @p update_obj to perform that
@@ -1577,12 +1571,10 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res add_members_in_space(QString const& space_id,
-                                    QJsonDocument const& update_obj,
-                                    QStringList& include) {
-        return add_members_in_space(space_id,
-                                    update_obj.toJson(),
-                                    include);
+    pubnub_res add_members(QString const& space_id,
+                           QJsonDocument const& update_obj,
+                           QStringList& include) {
+        return add_members(space_id, update_obj.toJson(), include);
     }
 
     /** Initiates transaction that updates the list of members in the space specified by
@@ -1617,9 +1609,9 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res update_members_in_space(QString const& space_id,
-                                       QByteArray const& update_obj,
-                                       QStringList& include);
+    pubnub_res update_members(QString const& space_id,
+                              QByteArray const& update_obj,
+                              QStringList& include);
 
     /** Initiates transaction that updates the list of members in the space specified by
         @p space_id. Uses the `update` property on the @p update_obj to perform that
@@ -1658,12 +1650,10 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res update_members_in_space(QString const& space_id,
-                                       QJsonDocument const& update_obj,
-                                       QStringList& include) {
-        return update_members_in_space(space_id,
-                                       update_obj.toJson(),
-                                       include);
+    pubnub_res update_members(QString const& space_id,
+                              QJsonDocument const& update_obj,
+                              QStringList& include) {
+        return update_members(space_id, update_obj.toJson(), include);
     }
 
     /** Initiates transaction that removes the list of members from the space specified by
@@ -1695,9 +1685,9 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res remove_members_in_space(QString const& space_id,
-                                       QByteArray const& update_obj,
-                                       QStringList& include);
+    pubnub_res remove_members(QString const& space_id,
+                              QByteArray const& update_obj,
+                              QStringList& include);
 
     /** Initiates transaction that removes the list of members from the space specified by
         @p space_id. Uses the `remove` property on the @p update_obj to perform that
@@ -1733,12 +1723,10 @@ public:
                        Use empty list if you don't want to retrieve additional attributes.
         @return #PNR_STARTED on success, an error otherwise
       */
-    pubnub_res remove_members_in_space(QString const& space_id,
-                                       QJsonDocument const& update_obj,
-                                       QStringList& include) {
-        return remove_members_in_space(space_id,
-                                       update_obj.toJson(),
-                                       include);
+    pubnub_res remove_members(QString const& space_id,
+                              QJsonDocument const& update_obj,
+                              QStringList& include) {
+        return remove_members(space_id, update_obj.toJson(), include);
     }
 #endif /* PUBNUB_USE_OBJECTS_API */
     

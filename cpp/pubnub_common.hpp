@@ -410,10 +410,10 @@ public:
     
 /** A wrapper class for objects api paging option parameters, enabling a nicer
     usage. Something like:
-       pbp.fetch_users(list_options().start(last_bookmark));
+       pbp.get_users(list_options().start(last_bookmark));
 
     instead of:
-       pbp.fetch_users(nullopt, nullopt, last_bookmark, “”, nullopt);
+       pbp.get_users(nullopt, nullopt, last_bookmark, “”, nullopt);
   */
 class list_options : public include_options {
     size_t d_limit;
@@ -1080,10 +1080,10 @@ public:
 #if PUBNUB_USE_OBJECTS_API
     /// Starts a transaction for optaining a paginated list of users associated
     /// with the subscription key.
-    /// @see pubnub_fetch_all_users
-    futres fetch_all_users(list_options& options)
+    /// @see pubnub_get_users
+    futres get_users(list_options& options)
     {
-        return doit(pubnub_fetch_all_users(
+        return doit(pubnub_get_users(
                         d_pb, 
                         options.include_c_strings_array(),
                         options.include_count(),
@@ -1106,11 +1106,11 @@ public:
     }
 
     /// Starts a transaction that returns the user object specified by @p user_id.
-    /// @see pubnub_fetch_user
-    futres fetch_user(std::string const& user_id, std::vector<std::string>& include)
+    /// @see pubnub_get_user
+    futres get_user(std::string const& user_id, std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_fetch_user(
+        return doit(pubnub_get_user(
                         d_pb,
                         inc.include_c_strings_array(),
                         inc.include_count(),
@@ -1138,10 +1138,10 @@ public:
     }
 
     /// Starts a transaction that returns the spaces associated with the subscriber key.
-    /// @see pubnub_fetch_all_spaces
-    futres fetch_all_spaces(list_options& options)
+    /// @see pubnub_get_spaces
+    futres get_spaces(list_options& options)
     {
-        return doit(pubnub_fetch_all_spaces(
+        return doit(pubnub_get_spaces(
                         d_pb, 
                         options.include_c_strings_array(),
                         options.include_count(),
@@ -1164,11 +1164,11 @@ public:
     }
 
     /// Starts a transaction that returns the space object specified by @p space_id.
-    /// @see pubnub_fetch_space
-    futres fetch_space(std::string const& space_id, std::vector<std::string>& include)
+    /// @see pubnub_get_space
+    futres get_space(std::string const& space_id, std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_fetch_space(
+        return doit(pubnub_get_space(
                         d_pb,
                         inc.include_c_strings_array(),
                         inc.include_count(),
@@ -1197,10 +1197,10 @@ public:
 
     /// Starts a transaction that returns the space memberships of the user specified
     /// by @p user_id.
-    /// @see pubnub_fetch_users_space_memberships
-    futres fetch_users_space_memberships(std::string const& user_id, list_options& options)
+    /// @see pubnub_get_memberships
+    futres get_memberships(std::string const& user_id, list_options& options)
     {
-        return doit(pubnub_fetch_users_space_memberships(
+        return doit(pubnub_get_memberships(
                         d_pb,
                         user_id.c_str(),
                         options.include_c_strings_array(),
@@ -1213,13 +1213,13 @@ public:
 
     /// Starts a transaction that adds the space memberships of the user specified
     /// by @p user_id.
-    /// @see pubnub_add_users_space_memberships
-    futres add_users_space_memberships(std::string const& user_id,
-                                       std::string const& update_obj,
-                                       std::vector<std::string>& include)
+    /// @see pubnub_join_spaces
+    futres join_spaces(std::string const& user_id,
+                       std::string const& update_obj,
+                       std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_add_users_space_memberships(
+        return doit(pubnub_join_spaces(
                         d_pb,
                         user_id.c_str(),
                         inc.include_c_strings_array(),
@@ -1229,13 +1229,13 @@ public:
 
     /// Starts a transaction that updates the space memberships of the user specified
     /// by @p user_id.
-    /// @see pubnub_update_users_space_memberships
-    futres update_users_space_memberships(std::string const& user_id,
-                                          std::string const& update_obj,
-                                          std::vector<std::string>& include)
+    /// @see pubnub_update_memberships
+    futres update_memberships(std::string const& user_id,
+                              std::string const& update_obj,
+                              std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_update_users_space_memberships(
+        return doit(pubnub_update_memberships(
                         d_pb,
                         user_id.c_str(),
                         inc.include_c_strings_array(),
@@ -1245,13 +1245,13 @@ public:
 
     /// Starts a transaction that removes the space memberships of the user specified
     /// by @p user_id.
-    /// @see pubnub_remove_users_space_memberships
-    futres remove_users_space_memberships(std::string const& user_id,
-                                          std::string const& update_obj,
-                                          std::vector<std::string>& include)
+    /// @see pubnub_leave_spaces
+    futres leave_spaces(std::string const& user_id,
+                        std::string const& update_obj,
+                        std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_remove_users_space_memberships(
+        return doit(pubnub_leave_spaces(
                         d_pb,
                         user_id.c_str(),
                         inc.include_c_strings_array(),
@@ -1260,10 +1260,10 @@ public:
     }
 
     /// Starts a transaction that returns all users in the space specified by @p space_id.
-    /// @see pubnub_fetch_members_in_space
-    futres fetch_members_in_space(std::string const& space_id, list_options& options)
+    /// @see pubnub_get_members
+    futres get_members(std::string const& space_id, list_options& options)
     {
-        return doit(pubnub_fetch_members_in_space(
+        return doit(pubnub_get_members(
                         d_pb,
                         space_id.c_str(),
                         options.include_c_strings_array(),
@@ -1276,13 +1276,13 @@ public:
 
     /// Starts a transaction that adds the list of members of the space specified
     /// by @p space_id.
-    /// @see pubnub_add_members_in_space
-    futres add_members_in_space(std::string const& space_id,
-                                std::string const& update_obj,
-                                std::vector<std::string>& include)
+    /// @see pubnub_add_members
+    futres add_members(std::string const& space_id,
+                       std::string const& update_obj,
+                       std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_add_members_in_space(
+        return doit(pubnub_add_members(
                         d_pb,
                         space_id.c_str(),
                         inc.include_c_strings_array(),
@@ -1292,13 +1292,13 @@ public:
 
     /// Starts a transaction that updates the list of members of the space specified
     /// by @p space_id.
-    /// @see pubnub_update_members_in_space
-    futres update_members_in_space(std::string const& space_id,
-                                   std::string const& update_obj,
-                                   std::vector<std::string>& include)
+    /// @see pubnub_update_members
+    futres update_members(std::string const& space_id,
+                          std::string const& update_obj,
+                          std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_update_members_in_space(
+        return doit(pubnub_update_members(
                         d_pb,
                         space_id.c_str(),
                         inc.include_c_strings_array(),
@@ -1308,13 +1308,13 @@ public:
 
     /// Starts a transaction that removes the list of members of the space specified
     /// by @p space_id.
-    /// @see pubnub_remove_members_in_space
-    futres remove_members_in_space(std::string const& space_id,
-                                   std::string const& update_obj,
-                                   std::vector<std::string>& include)
+    /// @see pubnub_remove_members
+    futres remove_members(std::string const& space_id,
+                          std::string const& update_obj,
+                          std::vector<std::string>& include)
     {
         include_options inc(include);
-        return doit(pubnub_remove_members_in_space(
+        return doit(pubnub_remove_members(
                         d_pb,
                         space_id.c_str(),
                         inc.include_c_strings_array(),
