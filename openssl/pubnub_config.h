@@ -200,5 +200,12 @@
 #define PUBNUB_USE_OBJECTS_API 1
 #endif
 
+#if !defined(PUBNUB_USE_ACTIONS_API)
+/** If true (!=0) will enable using the Actions API, which is a collection
+    of Rest API features that enables adding on, reading and removing actions
+    from published messages */
+#define PUBNUB_USE_ACTIONS_API 1
+#endif
+
 
 #endif /* !defined INC_PUBNUB_CONFIG */

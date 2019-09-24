@@ -71,6 +71,8 @@ char const* pubnub_res_2_string(enum pubnub_res e)
     case PNR_AUTHENTICATION_FAILED: return "Proxy authentication failed";
     case PNR_OBJECTS_API_INVALID_PARAM: return "Objects API invalid parameter";
     case PNR_OBJECTS_API_ERROR: return "Objects API transaction reported an error";
+    case PNR_GOT_ALL_ACTIONS: return "Actions API got all actions";
+    case PNR_ACTIONS_API_ERROR: return "Actions API transaction reported an error";
     default: return "!?!?!";
     }
 }
@@ -118,6 +120,8 @@ enum pubnub_tribool pubnub_should_retry(enum pubnub_res e)
     case PNR_AUTHENTICATION_FAILED: return pbccFalse; /* Check and fix the error reported */
     case PNR_OBJECTS_API_INVALID_PARAM: return pbccFalse; /* Check and fix the error reported */
     case PNR_OBJECTS_API_ERROR: return pbccFalse; /* Check the error reported */
+    case PNR_GOT_ALL_ACTIONS: return pbccFalse; /* Successfully finished */
+    case PNR_ACTIONS_API_ERROR: return pbccFalse; /* Check the error reported */
     }
     return pbccFalse;
 }

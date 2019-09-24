@@ -108,7 +108,11 @@ enum pubnub_res {
     /** Objects API invalid parameter */
     PNR_OBJECTS_API_INVALID_PARAM,
     /** Objects API transaction reported an error */
-    PNR_OBJECTS_API_ERROR
+    PNR_OBJECTS_API_ERROR,
+    /** Actions API. pbcc_get_actions_more() did not find another "more" key */
+    PNR_GOT_ALL_ACTIONS,
+    /** Actions API transaction reported an error */
+    PNR_ACTIONS_API_ERROR
 };
 
 /** 'pubnub_cancel()' return value */
@@ -229,6 +233,20 @@ enum pubnub_trans {
       */
     PBTT_REMOVE_MEMBERS,
 #endif /* PUBNUB_USE_OBJECTS_API */
+#if PUBNUB_USE_ACTIONS_API
+    /** Actions API transaction. Adds the action to the message.
+      */
+    PBTT_ADD_ACTION,
+    /** Actions API transaction. Removes the action from the message.
+      */
+    PBTT_REMOVE_ACTION,
+    /** Actions API transaction. Gets the actions received on a given channel.
+      */
+    PBTT_GET_ACTIONS,
+    /** Actions API transaction. Gets the message history with actions on them.
+      */
+    PBTT_HISTORY_WITH_ACTIONS,
+#endif /* PUBNUB_USE_ACTIONS_API */
     /** Count the number of transaction types */
     PBTT_MAX
 };

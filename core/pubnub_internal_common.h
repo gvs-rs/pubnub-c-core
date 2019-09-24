@@ -47,6 +47,10 @@
 #define PUBNUB_USE_OBJECTS_API 0
 #endif
 
+#if !defined(PUBNUB_USE_ACTIONS_API)
+#define PUBNUB_USE_ACTIONS_API 0
+#endif
+
 #if !defined(PUBNUB_PROXY_API)
 #define PUBNUB_PROXY_API 0
 #elif PUBNUB_PROXY_API

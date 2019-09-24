@@ -18,6 +18,9 @@
 #if PUBNUB_USE_OBJECTS_API
 #include "core/pbcc_objects_api.h"
 #endif
+#if PUBNUB_USE_ACTIONS_API
+#include "core/pbcc_actions_api.h"
+#endif
 #include "core/pubnub_proxy_core.h"
 
 #include <string.h>
@@ -289,6 +292,12 @@ static PFpbcc_parse_response_T m_aParseResponse[] = { dont_parse,
     , pbcc_parse_objects_api_response /* PBTT_ADD_MEMBERS */
     , pbcc_parse_objects_api_response /* PBTT_UPDATE_MEMBERS */
     , pbcc_parse_objects_api_response /* PBTT_REMOVE_MEMBERS */
+#endif /* PUBNUB_USE_OBJECTS_API */
+#if PUBNUB_USE_ACTIONS_API
+    , pbcc_parse_actions_api_response /* PBTT_ADD_ACTION */
+    , pbcc_parse_actions_api_response /* PBTT_REMOVE_ACTION */
+    , pbcc_parse_actions_api_response /* PBTT_GET_ACTIONS */
+    , pbcc_parse_history_with_actions_response /* PBTT_HISTORY_WITH_ACTIONS */
 #endif /* PUBNUB_USE_OBJECTS_API */
 #endif /* PUBNUB_ONLY_PUBSUB_API */
 };
