@@ -26,6 +26,17 @@
 #include <string.h>
 
 
+#define WATCH_ENUM_RESOLV_N_CONNECT(X)                                        \
+    do {                                                                      \
+       enum pbpal_resolv_n_connect_result x_ = (X);                           \
+       PUBNUB_LOG(PUBNUB_LOG_LEVEL_DEBUG,                                     \
+                  __FILE__ "(%d) in %s: `" #X "` = %d(%s)\n",                 \
+                  __LINE__,                                                   \
+                  __FUNCTION__,                                               \
+                  x_,                                                         \
+                  pbpal_resolv_n_connect_res_2_string(x_));                   \
+    } while (0)
+
 /** Each HTTP chunk has a trailining CRLF ("\r\n" in C-speak).  That's
     a little strange, but is in the "spirit" of HTTP.
 
@@ -503,7 +514,7 @@ next_state:
 #endif
     case PBS_READY: {
         enum pbpal_resolv_n_connect_result rslv = pbpal_resolv_and_connect(pb);
-        WATCH_ENUM(rslv);
+        WATCH_ENUM_RESOLV_N_CONNECT(rslv);
         switch (rslv) {
         case pbpal_resolv_send_wouldblock:
             i = pbntf_got_socket(pb);
@@ -561,7 +572,7 @@ next_state:
     }
     case PBS_WAIT_DNS_SEND: {
         enum pbpal_resolv_n_connect_result rslv = pbpal_resolv_and_connect(pb);
-        WATCH_ENUM(rslv);
+        WATCH_ENUM_RESOLV_N_CONNECT(rslv);
         switch (rslv) {
         case pbpal_resolv_send_wouldblock:
             break;
@@ -591,7 +602,7 @@ next_state:
     case PBS_WAIT_DNS_RCV: {
         enum pbpal_resolv_n_connect_result rslv =
             pbpal_check_resolv_and_connect(pb);
-        WATCH_ENUM(rslv);
+        WATCH_ENUM_RESOLV_N_CONNECT(rslv);
         switch (rslv) {
         case pbpal_resolv_send_wouldblock:
         case pbpal_resolv_sent:
@@ -621,7 +632,7 @@ next_state:
     }
     case PBS_WAIT_CONNECT: {
         enum pbpal_resolv_n_connect_result rslv = pbpal_check_connect(pb);
-        WATCH_ENUM(rslv);
+        WATCH_ENUM_RESOLV_N_CONNECT(rslv);
         switch (rslv) {
         case pbpal_resolv_send_wouldblock:
         case pbpal_resolv_sent:
@@ -1345,7 +1356,8 @@ next_state:
 void pbnc_stop(struct pubnub_* pbp, enum pubnub_res outcome_to_report)
 {
     PUBNUB_LOG_TRACE(
-        "pbnc_stop(%p, %s)\n", pbp, pubnub_res_2_string(outcome_to_report));
+        "pbnc_stop(%p, %s)\t", pbp, pubnub_res_2_string(outcome_to_report));
+    PUBNUB_LOG_TRACE("pb->state = %d (%s)\n", pbp->state, pbnc_state2str(pbp->state));
     pbp->core.last_result = outcome_to_report;
     switch (pbp->state) {
     case PBS_WAIT_CANCEL:
@@ -1354,16 +1366,28 @@ void pbnc_stop(struct pubnub_* pbp, enum pubnub_res outcome_to_report)
     case PBS_WAIT_DNS_SEND:
     case PBS_WAIT_DNS_RCV:
     case PBS_WAIT_CONNECT:
-        if (PNR_TIMEOUT == outcome_to_report) {
-            pbp->core.last_result = (PBS_WAIT_CONNECT == pbp->state) ? PNR_WAIT_CONNECT_TIMEOUT
-                                                                     : PNR_ADDR_RESOLUTION_FAILED;
-        }
-        pbp->state = PBS_WAIT_CANCEL;
 #if defined(PUBNUB_CALLBACK_API)
+        if (PNR_TIMEOUT == outcome_to_report) {
+            if ((pbp->state != PBS_WAIT_CONNECT) &&
+                (pbp->flags.sent_queries < PUBNUB_MAX_DNS_QUERIES)) {
+                pbp->flags.retry_after_close = true;
+                close_connection(pbp);
+            }
+            else {
+                pbp->core.last_result = (PBS_WAIT_CONNECT == pbp->state)
+                                        ? PNR_WAIT_CONNECT_TIMEOUT
+                                        : PNR_ADDR_RESOLUTION_FAILED;
+                pbp->state = PBS_WAIT_CANCEL;
+            }
+        }
+        else {
+            pbp->state = PBS_WAIT_CANCEL;
+        }
         pbntf_requeue_for_processing(pbp);
 #else
+        pbp->state = PBS_WAIT_CANCEL;
         pbnc_fsm(pbp);
-#endif
+#endif /* defined(PUBNUB_CALLBACK_API) */
         break;
     case PBS_NULL:
         PUBNUB_LOG_ERROR("pbnc_stop(pbp=%p) got called in NULL state\n", pbp);

@@ -1033,6 +1033,9 @@ pubnub_res pubnub_qt::add_action(QString const& channel,
 QString pubnub_qt::get_message_timetoken()
 {
     KEEP_THREAD_SAFE();
+    if (d_trans != PBTT_ADD_ACTION) {
+        return QString();
+    }
     pubnub_chamebl_t result = pbcc_get_message_timetoken(d_context.data());
     return QString(QByteArray(result.ptr, result.size));
 }
@@ -1041,6 +1044,9 @@ QString pubnub_qt::get_message_timetoken()
 QString pubnub_qt::get_action_timetoken()
 {
     KEEP_THREAD_SAFE();
+    if (d_trans != PBTT_ADD_ACTION) {
+        return QString();
+    }
     pubnub_chamebl_t result = pbcc_get_action_timetoken(d_context.data());
     return QString(QByteArray(result.ptr, result.size));
 }

@@ -218,6 +218,7 @@ static void check_dns_server_error(struct pbdns_servers_check* dns_check,
 {
     dns_check->dns_server_check |= dns_check->dns_mask;
     if (dns_check->dns_mask < PUBNUB_MAX_DNS_SERVERS_MASK) {
+        flags->sent_queries = 0;
         flags->retry_after_close = true;
     }
 }
@@ -422,7 +423,8 @@ enum pbpal_resolv_n_connect_result pbpal_resolv_and_connect(pubnub_t* pb)
     else if (error > 0) {
         return pbpal_resolv_send_wouldblock;
     }
-
+    pb->flags.sent_queries++;
+    
     return pbpal_resolv_sent;
 
 #else

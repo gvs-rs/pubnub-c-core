@@ -78,6 +78,25 @@ char const* pubnub_res_2_string(enum pubnub_res e)
 }
 
 
+char const* pbpal_resolv_n_connect_res_2_string(enum pbpal_resolv_n_connect_result e)
+{
+    switch (e) {
+    case pbpal_resolv_resource_failure: return "pbpal_resolv_resource_failure";
+    case pbpal_resolv_failed_send: return "pbpal_resolv_failed_send";
+    case pbpal_resolv_send_wouldblock: return "pbpal_resolv_send_wouldblock";
+    case pbpal_resolv_sent: return "pbpal_resolv_sent";
+    case pbpal_resolv_failed_rcv: return "pbpal_resolv_failed_rcv";
+    case pbpal_resolv_rcv_wouldblock: return "pbpal_resolv_rcv_wouldblock";
+    case pbpal_resolv_failed_processing: return "pbpal_resolv_failed_processing";
+    case pbpal_connect_resource_failure: return "pbpal_connect_resource_failure";
+    case pbpal_connect_failed: return "pbpal_connect_failed";
+    case pbpal_connect_wouldblock: return "pbpal_connect_wouldblock";
+    case pbpal_connect_success: return "pbpal_connect_success";
+    default: return "!?!?!";
+    }
+}
+
+
 #if PUBNUB_USE_SUBSCRIBE_V2
 char const* pubnub_msg_type_to_str(enum pubnub_message_type type)
 {
