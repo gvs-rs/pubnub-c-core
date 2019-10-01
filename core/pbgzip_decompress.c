@@ -67,8 +67,7 @@ static enum pubnub_res inflate_total_to_context_buffer(pubnub_t*      pb,
 }
 
 #if !PUBNUB_DYNAMIC_REPLY_BUFFER
-static pubnub_t* pb;
-PUBNUB_STATIC_ASSERT(sizeof pb->core.http_reply == sizeof pb->core.decomp_http_reply,
+PUBNUB_STATIC_ASSERT(sizeof((pubnub_t*)0)->core.http_reply == sizeof((pubnub_t*)0)->core.decomp_http_reply,
                      http_reply_and_gzip_decompression_buffer_dont_match);
 #endif
 

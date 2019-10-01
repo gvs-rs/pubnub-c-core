@@ -26,7 +26,7 @@
 #else
 /** Considering the size of bit field for DNS queries sent */
 PUBNUB_STATIC_ASSERT(PUBNUB_MAX_DNS_QUERIES < (1 << SENT_QUERIES_SIZE_IN_BITS),
-                     PUBNUB_MAX_DNS_QUERIES_is_to_be_big);
+                     PUBNUB_MAX_DNS_QUERIES_is_too_big);
 #if PUBNUB_USE_IPV6
 typedef struct sockaddr_storage sockaddr_inX_t;
 #define QUERY_TYPE pb->options.ipv6_connectivity ? dnsAAAA : dnsA
