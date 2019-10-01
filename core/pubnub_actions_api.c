@@ -36,6 +36,7 @@ enum pubnub_res pubnub_add_action(pubnub_t* pb,
                                        actype,
                                        &value);
     if (rslt != PNR_OK) {
+        pubnub_mutex_unlock(pb->monitor);
         return rslt;
     }
 #if PUBNUB_USE_GZIP_COMPRESSION
@@ -71,6 +72,7 @@ pubnub_chamebl_t pubnub_get_message_timetoken(pubnub_t* pb)
                          pb,
                          PBTT_ADD_ACTION,
                          pb->trans);
+        pubnub_mutex_unlock(pb->monitor);
         result.ptr = NULL;
         result.size = 0;
         return result;
@@ -95,6 +97,7 @@ pubnub_chamebl_t pubnub_get_action_timetoken(pubnub_t* pb)
                          pb,
                          PBTT_ADD_ACTION,
                          pb->trans);
+        pubnub_mutex_unlock(pb->monitor);
         result.ptr = NULL;
         result.size = 0;
         return result;
@@ -185,6 +188,7 @@ enum pubnub_res pubnub_get_actions_more(pubnub_t* pb)
                          pb,
                          PBTT_GET_ACTIONS,
                          pb->trans);
+        pubnub_mutex_unlock(pb->monitor);
         return PNR_INTERNAL_ERROR;
     }
 
@@ -247,6 +251,7 @@ enum pubnub_res pubnub_history_with_actions_more(pubnub_t* pb)
                          pb,
                          PBTT_HISTORY_WITH_ACTIONS,
                          pb->trans);
+        pubnub_mutex_unlock(pb->monitor);
         return PNR_INTERNAL_ERROR;
     }
 

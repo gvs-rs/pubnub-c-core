@@ -217,13 +217,15 @@ struct pubnub_flags {
      */
     bool started_while_kept_alive : 1;
 #if defined(PUBNUB_CALLBACK_API)
-    /** Number of DNS queries sent cosecutively in a single transaction.
-        Important when DNS server wouldn't answer right away because he had two, or more
-        requests received so close, in time, to one another.
-        Normally there should be just up to one, but sometimes there could be more.
+#define SENT_QUERIES_SIZE_IN_BITS 3
+    /** Number of DNS queries sent cosecutively in a single transaction to a single DNS
+        server.
+        Important when DNS server doesn't answer right away.
+        Normally there should be just up to one request sent to a single DNS server,
+        but, sometimes, there could be more.
         Macro constant limiting number of retries is defined in 'pubnub_config.h'
       */
-    int sent_queries : 3;
+    int sent_queries : SENT_QUERIES_SIZE_IN_BITS;
 #endif
 };
 

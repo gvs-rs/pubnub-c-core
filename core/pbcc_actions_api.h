@@ -21,20 +21,7 @@ enum pubnub_action_type {
     pbactypCustom
 };
 
-/** Forms the action object from @p json describing the action that will be 'added', later on,
-    via POST method in 'pubnub_add_action' request body.
-    Format of new object:
-      { "type": "reaction" | "receipt" | "custom",
-        "value": json,
-        "uuid": string-from-context
-      }
-    @param pb The pubnub ccore context. Can't be NULL
-    @param obj_buffer buffer provided for new json object
-    @param buffer_size Size of provided buffer
-    @param actype Action type
-    @param json On entrace to the function points to json object describing the action.
-                When function successfully returns points to the beggining of @p obj_buffer
-                where newly formed object is placed
+/** Forms the action object to be sent in 'pubnub_add_action' request body.
     @return #PNR_OK on success, an error otherwise
   */
 enum pubnub_res pbcc_form_the_action_object(struct pbcc_context* pb,
@@ -51,45 +38,11 @@ enum pubnub_res pbcc_add_action_prep(struct pbcc_context* pb,
                                      char const* message_timetoken, 
                                      char const* value);
 
-/** Searches the response(if previous transaction on the @p pb ccore_context had been
-    accomplished successfully) and retrieves message timetoken("messageTimetoken" key value).
-    Example of 'add_action' response in the ccore_context buffer:
-      {
-        "status": 200,
-        "data": {
-           "type": "reaction",
-           "value": "smiley_face",
-           "uuid": "user-456",
-           "actionTimetoken": 15610547826970050,
-           "messageTimetoken": 15610547826969050
-        }
-      }
-    If key expected is not found, preconditions were not fulfilled, or error was encountered,
-    returned structure has 0 'size' field and NULL 'ptr' field.
-    @param pb The pubnub ccore_context. Can't be NULL
-    @return Structured pointer to memory block containing message timetoken value within the
-            ccore_context response buffer
+/** Retrives message timetoken from the existing transaction response
   */
 pubnub_chamebl_t pbcc_get_message_timetoken(struct pbcc_context* pb);
 
-/** Searches the response(if previous transaction on the @p pb ccore_context had been
-    accomplished successfully) and retrieves action timetoken("actionTimetoken" key value).
-    Example of 'add_action' response in the ccore_context buffer:
-      {
-        "status": 200,
-        "data": {
-           "type": "reaction",
-           "value": "smiley_face",
-           "uuid": "user-456",
-           "actionTimetoken": 15610547826970050,
-           "messageTimetoken": 15610547826969050
-        }
-      }
-    If key expected is not found, preconditions were not fulfilled, or error was encountered,
-    returned structure has 0 'size' field and NULL 'ptr' field.
-    @param pb The pubnub ccore_context. Can't be NULL
-    @return Structured pointer to memory block containing action timetoken value within the
-            ccore_context response buffer
+/** Retrives action timetoken from the existing transaction response
   */
 pubnub_chamebl_t pbcc_get_action_timetoken(struct pbcc_context* pb);
 
@@ -110,33 +63,8 @@ enum pubnub_res pbcc_get_actions_prep(struct pbcc_context* pb,
                                       char const* end,
                                       size_t limit);
 
-/** This function expects previous transaction to be successfully accomplished.
-    If it is not the case, returns corresponding error.
-    When precondition is fulfilled, it searches for "more" field and if it finds it,
-    retreives the hyperlink to the rest which is used for obtaining another part of the
-    server response. Anotherwords, once the hyperlink is found in the existing response
-    it is used for formatting the URI of new HTTP request.
-    Example of the successful response on previous pubnub_get_actions, or
-    pubnub_get_actions_more transaction:
-      {
-        "status": 200,
-        "data": [
-          {
-            "type": "reaction",
-            "value": "smiley_face",
-            "uuid": "user-456",
-            "actionTimetoken": 15610547826970050,
-            "messageTimetoken": 15610547826969050
-          }
-        ],
-        "more": "/v1/actions/sub-c-abc/channel/demo-channel?start=15610547826970050"
-      }
-    If there is no "more" field encountered in the previous transaction response it
-    returns success: PNR_GOT_ALL_ACTIONS meaning that already received answer is complete.
-    @param pb The pubnub ccore_context containing response buffer to be searched. Can't be NULL
-    @retval PNR_STARTED transaction successfully initiated.
-    @retval PNR_GOT_ALL_ACTIONS transaction successfully finished.
-    @retval corresponding error otherwise
+/** Prepares the 'get_actions_more' transaction, mostly by
+    formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_get_actions_more_prep(struct pbcc_context* pb);
 

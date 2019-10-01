@@ -30,7 +30,7 @@
     do {                                                                      \
        enum pbpal_resolv_n_connect_result x_ = (X);                           \
        PUBNUB_LOG(PUBNUB_LOG_LEVEL_DEBUG,                                     \
-                  __FILE__ "(%d) in %s: `" #X "` = %d(%s)\n",                 \
+                  __FILE__ "(%d) in %s: `" #X "` = %d (%s)\n",                \
                   __LINE__,                                                   \
                   __FUNCTION__,                                               \
                   x_,                                                         \
@@ -1355,9 +1355,11 @@ next_state:
 
 void pbnc_stop(struct pubnub_* pbp, enum pubnub_res outcome_to_report)
 {
-    PUBNUB_LOG_TRACE(
-        "pbnc_stop(%p, %s)\t", pbp, pubnub_res_2_string(outcome_to_report));
-    PUBNUB_LOG_TRACE("pb->state = %d (%s)\n", pbp->state, pbnc_state2str(pbp->state));
+    PUBNUB_LOG_TRACE("pbnc_stop(pb=%p, %s) pb->state = %d (%s)\n",
+                     pbp,
+                     pubnub_res_2_string(outcome_to_report),
+                     pbp->state,
+                     pbnc_state2str(pbp->state));
     pbp->core.last_result = outcome_to_report;
     switch (pbp->state) {
     case PBS_WAIT_CANCEL:
