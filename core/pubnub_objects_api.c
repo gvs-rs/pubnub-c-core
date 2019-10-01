@@ -16,7 +16,7 @@
 #include <string.h>
 
 
-#define FORM_THE_OBJECT(pbcc, function_name_literal, obj_buffer, key_literal, json)\
+#define FORM_THE_OBJECT(pbcc, monitor, function_name_literal, obj_buffer, key_literal, json) \
 do {                                                                              \
     if (sizeof(obj_buffer) <                                                      \
         sizeof(key_literal) + pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH) + 1) { \
@@ -28,6 +28,7 @@ do {                                                                            
                          (unsigned long)sizeof(obj_buffer),                       \
                          (unsigned long)(sizeof(key_literal) +                    \
                                          pb_strnlen_s(json, PUBNUB_MAX_OBJECT_LENGTH))); \
+        pubnub_mutex_unlock(monitor);                                             \
         return PNR_TX_BUFF_TOO_SMALL;                                             \
     }                                                                             \
     snprintf(obj_buffer, sizeof(obj_buffer), "%s%s%c", key_literal, json, '}');   \
@@ -149,6 +150,7 @@ enum pubnub_res pubnub_update_user(pubnub_t* pb,
     }
     rslt = pbcc_find_objects_id(&pb->core, user_obj, &parsed_id, __FILE__, __LINE__);
     if (rslt != PNR_OK) {
+        pubnub_mutex_unlock(pb->monitor);
         return rslt;
     }
 
@@ -309,6 +311,7 @@ enum pubnub_res pubnub_update_space(pubnub_t* pb,
     }
     rslt = pbcc_find_objects_id(&pb->core, space_obj, &parsed_id, __FILE__, __LINE__);
     if (rslt != PNR_OK) {
+        pubnub_mutex_unlock(pb->monitor);
         return rslt;
     }
     
@@ -412,6 +415,7 @@ enum pubnub_res pubnub_join_spaces(pubnub_t* pb,
     }
 
     FORM_THE_OBJECT(&pb->core,
+                    pb->monitor,
                     "pubnub_join_spaces",
                     obj_buffer,
                     "{\"add\":",
@@ -455,6 +459,7 @@ enum pubnub_res pubnub_update_memberships(pubnub_t* pb,
     }
     
     FORM_THE_OBJECT(&pb->core,
+                    pb->monitor,
                     "pubnub_update_memberships",
                     obj_buffer,
                     "{\"update\":",
@@ -498,6 +503,7 @@ enum pubnub_res pubnub_leave_spaces(pubnub_t* pb,
     }
     
     FORM_THE_OBJECT(&pb->core,
+                    pb->monitor,
                     "pubnub_leave_spaces",
                     obj_buffer,
                     "{\"remove\":",
@@ -580,6 +586,7 @@ enum pubnub_res pubnub_add_members(pubnub_t* pb,
     }
     
     FORM_THE_OBJECT(&pb->core,
+                    pb->monitor,
                     "pubnub_add_members",
                     obj_buffer,
                     "{\"add\":",
@@ -623,6 +630,7 @@ enum pubnub_res pubnub_update_members(pubnub_t* pb,
     }
     
     FORM_THE_OBJECT(&pb->core,
+                    pb->monitor,
                     "pubnub_update_members",
                     obj_buffer,
                     "{\"update\":",
@@ -666,6 +674,7 @@ enum pubnub_res pubnub_remove_members(pubnub_t* pb,
     }
     
     FORM_THE_OBJECT(&pb->core,
+                    pb->monitor,
                     "pubnub_remove_members",
                     obj_buffer,
                     "{\"remove\":",
