@@ -4,9 +4,6 @@
 
 #include "core/pubnub_assert.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 
 /** This uses GetTickCount64(), which is very fast, but innacurate -
     typical resolution is ~16 ms, could be better or worse, but
