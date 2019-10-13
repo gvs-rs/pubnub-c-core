@@ -9,6 +9,8 @@
 
 /** Adds new type of message called action as a support for user reactions on a published
     messages.
+    Json string @p value is checked for its quotation marks at its ends. If any of the
+    quotation marks is missing function returns parameter error.
     If the transaction is finished successfully response will have 'data' field with
     added action data. If there is no data, nor error description in the response,
     response parsing function returns format error.
@@ -16,7 +18,7 @@
     @param channel The channel on which action is referring to.
     @param message_timetoken The timetoken of a published message action is applying to
     @param actype Action type
-    @param value Json object describing the action that is to be added
+    @param value Json string describing the action that is to be added
     @return #PNR_STARTED on success, an error otherwise
   */
 enum pubnub_res pubnub_add_action(pubnub_t* pb, 
