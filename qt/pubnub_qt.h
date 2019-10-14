@@ -611,6 +611,9 @@ public:
         @param reverse Direction of time traversal. False means
         timeline is traversed newest to oldest.
 
+        @param include_meta If true, transaction response will include
+        metadata for every gotten message
+
         @param end Lets you select an “end date”, in Timetoken
         format. If not provided, it will provide up to the number of
         messages defined in the “count” parameter. Page through
@@ -632,6 +635,7 @@ public:
                        bool include_token,
                        QString const& start,
                        bool reverse,
+                       bool include_meta,
                        QString const& end,
                        bool string_token);
 

@@ -416,6 +416,7 @@ pubnub_res pubnub_qt::history(QString const& channel, unsigned count, bool inclu
                           include_token,
                           pbccNotSet,
                           pbccNotSet,
+                          pbccNotSet,
                           0,
                           0),
         PBTT_HISTORY);
@@ -427,6 +428,7 @@ pubnub_res pubnub_qt::history(QString const& channel,
                               bool           include_token,
                               QString const& start,
                               bool           reverse,
+                              bool           include_meta,
                               QString const& end,
                               bool           string_token)
 {
@@ -438,6 +440,7 @@ pubnub_res pubnub_qt::history(QString const& channel,
                           include_token,
                           string_token ? pbccTrue : pbccFalse,
                           reverse ? pbccTrue : pbccFalse,
+                          include_meta ? pbccTrue : pbccFalse,
                           start.isEmpty() ? 0 : start.toLatin1().data(),
                           end.isEmpty() ? 0 : end.toLatin1().data()),
         PBTT_HISTORY);

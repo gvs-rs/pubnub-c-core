@@ -372,6 +372,11 @@ public:
         d_.include_token = inc_token;
         return *this;
     }
+    history_options& include_meta(bool inc_meta)
+    {
+        d_.include_meta = inc_meta;
+        return *this;
+    }
     pubnub_history_options data() { return d_; }
 };
 
