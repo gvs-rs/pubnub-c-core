@@ -2,8 +2,8 @@
 #if !defined(INC_PBMC_ELAPSED_MS)
 #define INC_PBMC_ELAPSED_MS
 
-struct timespec;
+#include <time.h>
 
-int pbmc_elapsed_ms(struct timespec prev_timspec, struct timespec timspec);
+int pbtimespec_elapsed_ms(struct timespec prev_timspec, struct timespec timspec);
 
 #endif /* !defined(INC_PBMC_ELAPSED_MS) */

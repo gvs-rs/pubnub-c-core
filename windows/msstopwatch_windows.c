@@ -13,7 +13,7 @@
 
 pbmsref_t pbms_start(void)
 {
-    pbmsref_t rslt = { GetTickCount64() };
+    pbmsref_t rslt = { GetTickCount64() + 1 };
     return rslt;
 }
 
@@ -33,5 +33,5 @@ bool pbms_active(pbmsref_t stopwatch)
 pbms_t pbms_elapsed(pbmsref_t since)
 {
     PUBNUB_ASSERT(pbms_active(since));
-    return (pbms_t)(GetTickCount64() - since.t_ref);
+    return (pbms_t)(GetTickCount64() + 1 - since.t_ref);
 }

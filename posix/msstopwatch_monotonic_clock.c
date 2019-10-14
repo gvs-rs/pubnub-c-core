@@ -5,7 +5,7 @@
 #include "core/pubnub_assert.h"
 
 #include "posix/monotonic_clock_get_time.h"
-#include "posix/pbmc_elapsed_ms.h"
+#include "posix/pbtimespec_elapsed_ms.h"
 
 
 /** This uses our helper module that provides a monotonic
@@ -15,7 +15,7 @@
 static struct timespec msclock(void)
 {
     struct timespec ts;
-    if (0 == monotonic_clock_get_time(&(ts))) {
+    if (0 == monotonic_clock_get_time(&ts)) {
         return ts;
     }
     else {
@@ -47,5 +47,5 @@ bool pbms_active(pbmsref_t stopwatch)
 pbms_t pbms_elapsed(pbmsref_t since)
 {
     PUBNUB_ASSERT(pbms_active(since));
-    return pbmc_elapsed_ms(since.t_ref, msclock());
+    return pbtimespec_elapsed_ms(since.t_ref, msclock());
 }

@@ -2,7 +2,7 @@
 #include "core/pubnub_ntf_callback.h"
 
 #include "posix/monotonic_clock_get_time.h"
-#include "posix/pbmc_elapsed_ms.h"
+#include "posix/pbtimespec_elapsed_ms.h"
 
 #include "pubnub_internal.h"
 #include "core/pubnub_assert.h"
@@ -75,7 +75,7 @@ void* socket_watcher_thread(void* arg)
         pthread_mutex_unlock(&m_watcher.mutw);
 
         if (PUBNUB_TIMERS_API) {
-            int elapsed = pbmc_elapsed_ms(prev_timspec, timspec);
+            int elapsed = pbtimespec_elapsed_ms(prev_timspec, timspec);
             if (elapsed > 0) {
                 if (elapsed > max_poll_ms + 5) {
                     PUBNUB_LOG_TRACE("elapsed = %d: prev_timspec={%ld, %ld}, timspec={%ld,%ld}\n",
