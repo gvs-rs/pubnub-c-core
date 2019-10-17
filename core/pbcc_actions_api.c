@@ -14,7 +14,8 @@
 
 /* Maximum number of actions to return in response */
 #define MAX_ACTIONS_LIMIT 100
-
+/* Maximium timetoken length */
+#define TT_MAX_SIZE 30
 
 enum pubnub_res pbcc_form_the_action_object(struct pbcc_context* pb,
                                             char* obj_buffer,
@@ -197,15 +198,48 @@ pubnub_chamebl_t pbcc_get_action_timetoken(struct pbcc_context* pb)
 
 enum pubnub_res pbcc_remove_action_prep(struct pbcc_context* pb,
                                         char const* channel,
-                                        char const* message_timetoken,
-                                        char const* action_timetoken)
+                                        pubnub_chamebl_t message_timetoken,
+                                        pubnub_chamebl_t action_timetoken)
 {
+    char message_tt_str[TT_MAX_SIZE + 1];
+    char action_tt_str[TT_MAX_SIZE + 1];
     char const* const uname = pubnub_uname();
     char const*       uuid = pbcc_uuid_get(pb);
 
     PUBNUB_ASSERT_OPT(channel != NULL);
-    PUBNUB_ASSERT_OPT(message_timetoken != NULL);
-    PUBNUB_ASSERT_OPT(action_timetoken != NULL);
+    PUBNUB_ASSERT_OPT(message_timetoken.ptr != NULL);
+    PUBNUB_ASSERT_OPT(action_timetoken.ptr != NULL);
+
+    if ((*message_timetoken.ptr != '\"') ||
+        (*(message_timetoken.ptr + message_timetoken.size - 1) != '\"')) {
+        PUBNUB_LOG_ERROR("pbcc_remove_action_prep(pbcc=%p) - "
+                         "mesage timetoken is missing quotation marks: "
+                         "message_timetoken = %.*s\n",
+                         pb,
+                         (int)message_timetoken.size,
+                         message_timetoken.ptr);
+        return PNR_INVALID_PARAMETERS;
+    }
+    if ((*action_timetoken.ptr != '\"') ||
+        (*(action_timetoken.ptr + action_timetoken.size - 1) != '\"')) {
+        PUBNUB_LOG_ERROR("pbcc_remove_action_prep(pbcc=%p) - "
+                         "action timetoken is missing quotation marks: "
+                         "action_timetoken = %.*s\n",
+                         pb,
+                         (int)action_timetoken.size,
+                         action_timetoken.ptr);
+        return PNR_INVALID_PARAMETERS;
+    }
+    snprintf(message_tt_str,
+             sizeof message_tt_str,
+             "%.*s",
+             (int)(message_timetoken.size - 2),
+             message_timetoken.ptr + 1);
+    snprintf(action_tt_str,
+             sizeof action_tt_str,
+             "%.*s",
+             (int)(action_timetoken.size - 2),
+             action_timetoken.ptr + 1);
 
     pb->http_content_len = 0;
     pb->msg_ofs = pb->msg_end = 0;
@@ -215,9 +249,9 @@ enum pubnub_res pbcc_remove_action_prep(struct pbcc_context* pb,
                                 pb->subscribe_key);
     APPEND_URL_ENCODED_M(pb, channel);
     APPEND_URL_LITERAL_M(pb, "/message/");
-    APPEND_URL_ENCODED_M(pb, message_timetoken);
+    APPEND_URL_ENCODED_M(pb, message_tt_str);
     APPEND_URL_LITERAL_M(pb, "/action/");
-    APPEND_URL_ENCODED_M(pb, action_timetoken);
+    APPEND_URL_ENCODED_M(pb, action_tt_str);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
@@ -290,13 +324,22 @@ enum pubnub_res pbcc_get_actions_more_prep(struct pbcc_context* pb)
 
         return PNR_FORMAT_ERROR;
     }
+    json_rslt = pbjson_get_object_value(&parsed, "url", &elem);
+    if (json_rslt != jonmpOK) {
+        PUBNUB_LOG_ERROR("pbcc_get_actions_more_prep(pbcc=%p) - Invalid response: "
+                         "pbjson_get_object_value(\"url\") reported an error: %s\n",
+                         pb,
+                         pbjson_object_name_parse_result_2_string(json_rslt));
+
+        return PNR_FORMAT_ERROR;
+    }
     pb->http_content_len = 0;
     pb->msg_ofs = pb->msg_end = 0;
     pb->http_buf_len = snprintf(pb->http_buf,
                                 sizeof pb->http_buf,
                                 "%.*s",
-                                (int)(parsed.end - parsed.start - 2),
-                                parsed.start + 1);
+                                (int)(elem.end - elem.start - 2),
+                                elem.start + 1);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '&');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');

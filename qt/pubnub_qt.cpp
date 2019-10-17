@@ -1063,8 +1063,8 @@ pubnub_res pubnub_qt::remove_action(QString const& channel,
     return startRequest(
         pbcc_remove_action_prep(d_context.data(),
                                 channel.toLatin1().data(),
-                                message_timetoken.toLatin1().data(),
-                                action_timetoken.toLatin1().data()),
+                                pubnub_str_2_chamebl_t((char*)message_timetoken.toLatin1().data()),
+                                pubnub_str_2_chamebl_t((char*)action_timetoken.toLatin1().data())),
         PBTT_REMOVE_ACTION);
 }
 

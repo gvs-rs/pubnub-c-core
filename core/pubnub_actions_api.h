@@ -35,8 +35,8 @@ enum pubnub_res pubnub_add_action(pubnub_t* pb,
     or error was encountered,
     returned structure has 0 'size' field and NULL 'ptr' field.
     @param pb The pubnub context. Can't be NULL
-    @return Structured pointer to memory block containing message timetoken value within the
-            context response buffer
+    @return Structured pointer to memory block containing message timetoken value(including
+            its quotation marks) within the context response buffer
   */
 pubnub_chamebl_t pubnub_get_message_timetoken(pubnub_t* pb);
 
@@ -47,8 +47,8 @@ pubnub_chamebl_t pubnub_get_message_timetoken(pubnub_t* pb);
     If key expected is not found, preconditions were not fulfilled, or error was encountered,
     returned structure has 0 'size' field and NULL 'ptr' field.
     @param pb The pubnub context. Can't be NULL
-    @return Structured pointer to memory block containing action timetoken value within the
-            context response buffer
+    @return Structured pointer to memory block containing action timetoken value(including
+            its quotation marks) within the context response buffer
   */
 pubnub_chamebl_t pubnub_get_action_timetoken(pubnub_t* pb);
 
@@ -59,15 +59,17 @@ pubnub_chamebl_t pubnub_get_action_timetoken(pubnub_t* pb);
     @param pb The pubnub context. Can't be NULL
     @param channel The channel on which action was previously added.
     @param message_timetoken The timetoken of a published message action was applied to.
-                             (Obtained from the response when action was added)
+                             (Obtained from the response when action was added and expected
+                              with its quotation marks at both ends)
     @param action_timetoken The action timetoken when it was added(Gotten from the transaction
-                            response when action was added)
+                            response when action was added and expected with its quotation
+                            marks at both ends)
     @return #PNR_STARTED on success, an error otherwise
   */
 enum pubnub_res pubnub_remove_action(pubnub_t* pb,
                                      char const* channel,
-                                     char const* message_timetoken,
-                                     char const* action_timetoken);
+                                     pubnub_chamebl_t message_timetoken,
+                                     pubnub_chamebl_t action_timetoken);
 
 
 /** Initiates transaction that returns all actions added on a given @p channel between @p start

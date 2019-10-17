@@ -112,8 +112,8 @@ pubnub_chamebl_t pubnub_get_action_timetoken(pubnub_t* pb)
 
 enum pubnub_res pubnub_remove_action(pubnub_t* pb,
                                      char const* channel,
-                                     char const* message_timetoken,
-                                     char const* action_timetoken)
+                                     pubnub_chamebl_t message_timetoken,
+                                     pubnub_chamebl_t action_timetoken)
 {
     enum pubnub_res rslt;
 

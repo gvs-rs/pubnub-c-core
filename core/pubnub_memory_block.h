@@ -49,5 +49,7 @@ typedef struct pubnub_byte_mem_block pubnub_bymebl_t;
 /** Helper typedef for a char memory block */
 typedef struct pubnub_char_mem_block pubnub_chamebl_t;
 
+/** Returns memory block for a given NULL terminated string */
+pubnub_chamebl_t pubnub_str_2_chamebl_t(char* str);
 
 #endif /* !defined INC_PUBNUB_MEMORY_BLOCK */
