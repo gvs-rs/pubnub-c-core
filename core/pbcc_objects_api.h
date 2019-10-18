@@ -27,7 +27,7 @@ enum pubnub_res pbcc_find_objects_id(struct pbcc_context* pb,
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_get_users_prep(struct pbcc_context* pb,
-                                    char const** include, 
+                                    char const** include,
                                     size_t include_count,
                                     size_t limit,
                                     char const* start,
@@ -38,7 +38,7 @@ enum pubnub_res pbcc_get_users_prep(struct pbcc_context* pb,
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_create_user_prep(struct pbcc_context* pb,
-                                      char const** include, 
+                                      char const** include,
                                       size_t include_count,
                                       const char* user_obj);
 
@@ -46,7 +46,7 @@ enum pubnub_res pbcc_create_user_prep(struct pbcc_context* pb,
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_get_user_prep(struct pbcc_context* pb,
-                                   char const** include, 
+                                   char const** include,
                                    size_t include_count,
                                    char const* user_id);
 
@@ -54,7 +54,7 @@ enum pubnub_res pbcc_get_user_prep(struct pbcc_context* pb,
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_update_user_prep(struct pbcc_context* pb,
-                                      char const** include, 
+                                      char const** include,
                                       size_t include_count,
                                       char const* user_obj,
                                       struct pbjson_elem const* id);
@@ -71,7 +71,7 @@ enum pubnub_res pbcc_delete_user_prep(struct pbcc_context* pb, char const* user_
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_get_spaces_prep(struct pbcc_context* pb,
-                                     char const** include, 
+                                     char const** include,
                                      size_t include_count,
                                      size_t limit,
                                      char const* start,
@@ -83,7 +83,7 @@ enum pubnub_res pbcc_get_spaces_prep(struct pbcc_context* pb,
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_create_space_prep(struct pbcc_context* pb,
-                                       char const** include, 
+                                       char const** include,
                                        size_t include_count,
                                        const char* space_obj);
 
@@ -92,7 +92,7 @@ enum pubnub_res pbcc_create_space_prep(struct pbcc_context* pb,
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_get_space_prep(struct pbcc_context* pb,
-                                    char const** include, 
+                                    char const** include,
                                     size_t include_count,
                                     char const* space_id);
 
@@ -101,7 +101,7 @@ enum pubnub_res pbcc_get_space_prep(struct pbcc_context* pb,
     formatting the URI of the HTTP request.
   */
 enum pubnub_res pbcc_update_space_prep(struct pbcc_context* pb,
-                                       char const** include, 
+                                       char const** include,
                                        size_t include_count,
                                        char const* space_obj,
                                        struct pbjson_elem const* id);
@@ -118,7 +118,7 @@ enum pubnub_res pbcc_delete_space_prep(struct pbcc_context* pb, char const* spac
   */
 enum pubnub_res pbcc_get_memberships_prep(struct pbcc_context* pb,
                                           char const* user_id,
-                                          char const** include, 
+                                          char const** include,
                                           size_t include_count,
                                           size_t limit,
                                           char const* start,
@@ -131,7 +131,7 @@ enum pubnub_res pbcc_get_memberships_prep(struct pbcc_context* pb,
   */
 enum pubnub_res pbcc_update_memberships_prep(struct pbcc_context* pb,
                                              char const* user_id,
-                                             char const** include, 
+                                             char const** include,
                                              size_t include_count,
                                              char const* update_obj);
 
@@ -140,7 +140,7 @@ enum pubnub_res pbcc_update_memberships_prep(struct pbcc_context* pb,
   */
 enum pubnub_res pbcc_get_members_prep(struct pbcc_context* pb,
                                       char const* space_id,
-                                      char const** include, 
+                                      char const** include,
                                       size_t include_count,
                                       size_t limit,
                                       char const* start,
@@ -152,7 +152,7 @@ enum pubnub_res pbcc_get_members_prep(struct pbcc_context* pb,
   */
 enum pubnub_res pbcc_update_members_prep(struct pbcc_context* pb,
                                          char const* space_id,
-                                         char const** include, 
+                                         char const** include,
                                          size_t include_count,
                                          char const* update_obj);
 

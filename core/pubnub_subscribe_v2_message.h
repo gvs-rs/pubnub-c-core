@@ -15,7 +15,7 @@ enum pubnub_message_type {
     pbsbSignal,
     /* Indicates that message was published */ 
     pbsbPublished,
-    /* Indicates action on published message */ 
+    /* Indicates action on published message */
     pbsbAction
 };
 

@@ -79,7 +79,7 @@ enum pubnub_res append_url_param_include(struct pbcc_context* pb,
 
         return PNR_OBJECTS_API_INVALID_PARAM;
     }
-    
+
     for (i = 0; i < include_count; i++) {
         size_t param_val_len;
         if (NULL == include[i]) {
@@ -88,7 +88,7 @@ enum pubnub_res append_url_param_include(struct pbcc_context* pb,
                              pb,
                              i,
                              (unsigned long)include_count);
-        
+
             return PNR_OBJECTS_API_INVALID_PARAM;
         }
         param_val_len = pb_strnlen_s(include[i], MAX_INCLUDE_ELEM_LENGTH);
@@ -113,13 +113,13 @@ enum pubnub_res append_url_param_include(struct pbcc_context* pb,
                                          include[i]);
         }
     }
-    
+
     return PNR_OK;
 }
 
 
 enum pubnub_res pbcc_get_users_prep(struct pbcc_context* pb,
-                                    char const** include, 
+                                    char const** include,
                                     size_t include_count,
                                     size_t limit,
                                     char const* start,
@@ -156,7 +156,7 @@ enum pubnub_res pbcc_get_users_prep(struct pbcc_context* pb,
 
 
 enum pubnub_res pbcc_create_user_prep(struct pbcc_context* pb,
-                                      char const** include, 
+                                      char const** include,
                                       size_t include_count,
                                       const char* user_obj)
 {
@@ -184,14 +184,14 @@ enum pubnub_res pbcc_create_user_prep(struct pbcc_context* pb,
 
 
 enum pubnub_res pbcc_get_user_prep(struct pbcc_context* pb,
-                                   char const** include, 
+                                   char const** include,
                                    size_t include_count,
                                    char const* user_id)
 {
     char const* const uname = pubnub_uname();
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
-    
+
     if (NULL == user_id) {
         PUBNUB_LOG_ERROR("pbcc_get_user_prep(pbcc=%p) - Invalid param: "
                          "user_id=NULL\n",
@@ -217,7 +217,7 @@ enum pubnub_res pbcc_get_user_prep(struct pbcc_context* pb,
 
 
 enum pubnub_res pbcc_update_user_prep(struct pbcc_context* pb,
-                                      char const** include, 
+                                      char const** include,
                                       size_t include_count,
                                       char const* user_obj,
                                       struct pbjson_elem const* id)
@@ -225,7 +225,7 @@ enum pubnub_res pbcc_update_user_prep(struct pbcc_context* pb,
     char const* const  uname = pubnub_uname();
     char const*        uuid = pbcc_uuid_get(pb);
     enum pubnub_res    rslt;
-    
+
     PUBNUB_ASSERT_OPT(user_obj != NULL);
 
     pb->http_content_len = 0;
@@ -251,7 +251,7 @@ enum pubnub_res pbcc_delete_user_prep(struct pbcc_context* pb, char const* user_
 {
     char const* const uname = pubnub_uname();
     char const*       uuid = pbcc_uuid_get(pb);
-    
+
     if (NULL == user_id) {
         PUBNUB_LOG_ERROR("pbcc_delete_user_prep(pbcc=%p) - Invalid param: "
                          "user_id=NULL\n",
@@ -276,7 +276,7 @@ enum pubnub_res pbcc_delete_user_prep(struct pbcc_context* pb, char const* user_
 
 
 enum pubnub_res pbcc_get_spaces_prep(struct pbcc_context* pb,
-                                     char const** include, 
+                                     char const** include,
                                      size_t include_count,
                                      size_t limit,
                                      char const* start,
@@ -313,7 +313,7 @@ enum pubnub_res pbcc_get_spaces_prep(struct pbcc_context* pb,
 
 
 enum pubnub_res pbcc_create_space_prep(struct pbcc_context* pb,
-                                       char const** include, 
+                                       char const** include,
                                        size_t include_count,
                                        const char* space_obj)
 {
@@ -341,14 +341,14 @@ enum pubnub_res pbcc_create_space_prep(struct pbcc_context* pb,
     
 
 enum pubnub_res pbcc_get_space_prep(struct pbcc_context* pb,
-                                    char const** include, 
+                                    char const** include,
                                     size_t include_count,
                                     char const* space_id)
 {
     char const* const uname = pubnub_uname();
     char const*       uuid = pbcc_uuid_get(pb);
     enum pubnub_res   rslt;
-    
+
     if (NULL == space_id) {
         PUBNUB_LOG_ERROR("pbcc_get_space_prep(pbcc=%p) - Invalid param: "
                          "space_id=NULL\n",
@@ -374,7 +374,7 @@ enum pubnub_res pbcc_get_space_prep(struct pbcc_context* pb,
 
 
 enum pubnub_res pbcc_update_space_prep(struct pbcc_context* pb,
-                                       char const** include, 
+                                       char const** include,
                                        size_t include_count,
                                        char const* space_obj,
                                        struct pbjson_elem const* id)
@@ -382,7 +382,7 @@ enum pubnub_res pbcc_update_space_prep(struct pbcc_context* pb,
     char const* const  uname = pubnub_uname();
     char const*        uuid = pbcc_uuid_get(pb);
     enum pubnub_res    rslt;
-    
+
     PUBNUB_ASSERT_OPT(space_obj != NULL);
 
     pb->http_content_len = 0;
@@ -408,7 +408,7 @@ enum pubnub_res pbcc_delete_space_prep(struct pbcc_context* pb, char const* spac
 {
     char const* const uname = pubnub_uname();
     char const*       uuid = pbcc_uuid_get(pb);
-    
+
     if (NULL == space_id) {
         PUBNUB_LOG_ERROR("pbcc_delete_space_prep(pbcc=%p) - Invalid param: "
                          "space_id=NULL\n",
@@ -434,7 +434,7 @@ enum pubnub_res pbcc_delete_space_prep(struct pbcc_context* pb, char const* spac
 
 enum pubnub_res pbcc_get_memberships_prep(struct pbcc_context* pb,
                                           char const* user_id,
-                                          char const** include, 
+                                          char const** include,
                                           size_t include_count,
                                           size_t limit,
                                           char const* start,
@@ -473,14 +473,14 @@ enum pubnub_res pbcc_get_memberships_prep(struct pbcc_context* pb,
 
 enum pubnub_res pbcc_update_memberships_prep(struct pbcc_context* pb,
                                              char const* user_id,
-                                             char const** include, 
+                                             char const** include,
                                              size_t include_count,
                                              char const* update_obj)
 {
     char const* const  uname = pubnub_uname();
     char const*        uuid = pbcc_uuid_get(pb);
     enum pubnub_res    rslt;
-    
+
     PUBNUB_ASSERT_OPT(update_obj != NULL);
 
     pb->http_content_len = 0;
@@ -503,7 +503,7 @@ enum pubnub_res pbcc_update_memberships_prep(struct pbcc_context* pb,
 
 enum pubnub_res pbcc_get_members_prep(struct pbcc_context* pb,
                                       char const* space_id,
-                                      char const** include, 
+                                      char const** include,
                                       size_t include_count,
                                       size_t limit,
                                       char const* start,
@@ -542,14 +542,14 @@ enum pubnub_res pbcc_get_members_prep(struct pbcc_context* pb,
 
 enum pubnub_res pbcc_update_members_prep(struct pbcc_context* pb,
                                          char const* space_id,
-                                         char const** include, 
+                                         char const** include,
                                          size_t include_count,
                                          char const* update_obj)
 {
     char const* const  uname = pubnub_uname();
     char const*        uuid = pbcc_uuid_get(pb);
     enum pubnub_res    rslt;
-    
+
     PUBNUB_ASSERT_OPT(update_obj != NULL);
 
     pb->http_content_len = 0;
@@ -585,7 +585,7 @@ enum pubnub_res pbcc_parse_objects_api_response(struct pbcc_context* pb)
     pb->chan_ofs = pb->chan_end = 0;
     pb->msg_ofs = 0;
     pb->msg_end = replylen + 1;
-    
+
     elem.end = pbjson_find_end_element(reply, reply + replylen);
     /* elem.end has to be just behind end curly brace */
     if ((*reply != '{') || (*(elem.end++) != '}')) {
@@ -612,7 +612,7 @@ enum pubnub_res pbcc_parse_objects_api_response(struct pbcc_context* pb)
                            pb,
                            (int)(parsed.end - parsed.start),
                            parsed.start);
-        
+
         return PNR_OBJECTS_API_ERROR;
     }
     else if (json_rslt != jonmpOK) {
