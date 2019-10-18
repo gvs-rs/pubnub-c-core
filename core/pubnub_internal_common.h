@@ -43,6 +43,14 @@
 #define PUBNUB_USE_ADVANCED_HISTORY 0
 #endif
 
+#if !defined(PUBNUB_USE_OBJECTS_API)
+#define PUBNUB_USE_OBJECTS_API 0
+#endif
+
+#if !defined(PUBNUB_USE_ACTIONS_API)
+#define PUBNUB_USE_ACTIONS_API 0
+#endif
+
 #if !defined(PUBNUB_PROXY_API)
 #define PUBNUB_PROXY_API 0
 #elif PUBNUB_PROXY_API
@@ -51,8 +59,11 @@
 #include "core/pbhttp_digest.h"
 #endif
 
-#define PUBNUB_NEED_RETRY_AFTER_CLOSE                          \
-    (PUBNUB_PROXY_API || PUBNUB_USE_SSL || PUBNUB_ADNS_RETRY_AFTER_CLOSE)
+#if defined(PUBNUB_CALLBACK_API)
+#define PUBNUB_NEED_RETRY_AFTER_CLOSE 1
+#else
+#define PUBNUB_NEED_RETRY_AFTER_CLOSE (PUBNUB_PROXY_API || PUBNUB_USE_SSL)
+#endif
 
 #if !defined PUBNUB_USE_GZIP_COMPRESSION
 #define PUBNUB_USE_GZIP_COMPRESSION 0
@@ -71,6 +82,8 @@
 #include <time.h>
 #endif
 
+/* Maximum object length that will be sent via PATCH, or POST methods */
+#define PUBNUB_MAX_OBJECT_LENGTH 30000
 
 /** State of a Pubnub socket. Some states are specific to some
     PALs.
@@ -203,11 +216,17 @@ struct pubnub_flags {
         renewed without losing transaction at hand.
      */
     bool started_while_kept_alive : 1;
-
-    /** Indicates whether to send the message in http message body, or if not,
-        encoded 'via GET'(, or maybe some third method).
+#if defined(PUBNUB_CALLBACK_API)
+#define SENT_QUERIES_SIZE_IN_BITS 3
+    /** Number of DNS queries sent cosecutively in a single transaction to a single DNS
+        server.
+        Important when DNS server doesn't answer right away.
+        Normally there should be just up to one request sent to a single DNS server,
+        but, sometimes, there could be more.
+        Macro constant limiting number of retries is defined in 'pubnub_config.h'
       */
-    bool is_publish_via_post : 1;
+    int sent_queries : SENT_QUERIES_SIZE_IN_BITS;
+#endif
 };
 
 #if PUBNUB_CHANGE_DNS_SERVERS
@@ -246,6 +265,7 @@ struct pubnub_multi_addresses {
 #endif
 };
 #endif /* PUBNUB_USE_MULTIPLE_ADDRESSES */
+
 
 /** The Pubnub context
 
@@ -310,6 +330,12 @@ struct pubnub_ {
 
     struct pubnub_flags flags;
 
+    /** Indicates whether to send the message in http message body(POST, or PATCH),
+        or if not, encoded 'via GET'(, or maybe some other method).
+        Takes values from enum 'pubnub_method' defined in 'pubnub_api_types.h'.
+      */
+    uint8_t method;
+    
 #if PUBNUB_ADVANCED_KEEP_ALIVE
     struct pubnub_keep_alive_data {
         time_t   timeout;
@@ -339,6 +365,9 @@ struct pubnub_ {
 #if PUBNUB_TIMERS_API
     /** Duration of the transaction timeout, in milliseconds */
     int transaction_timeout_ms;
+
+    /** Duration of the 'wait_connect_TCP_socket' timeout, in milliseconds */
+    int wait_connect_timeout_ms;
 
 #if defined(PUBNUB_CALLBACK_API)
     struct pubnub_* previous;
@@ -460,6 +489,12 @@ int pbntf_got_socket(pubnub_t* pb);
 
 void pbntf_update_socket(pubnub_t* pb);
 
+/** Removes timer running on the context @p p and starts the one for 'wait_connect_TCP_socket' */
+void pbntf_start_wait_connect_timer(pubnub_t* pb);
+
+/** Removes timer running on the context @p p and starts the one for 'transaction' */
+void pbntf_start_transaction_timer(pubnub_t* pb);
+
 void pbntf_lost_socket(pubnub_t* pb);
 
 int pbntf_enqueue_for_processing(pubnub_t* pb);
@@ -483,14 +518,6 @@ pubnub_t* pballoc_get_ctx(unsigned idx);
 /** Internal function, the "bottom half" of pubnub_free(), which is
     done asynchronously in the callback mode. */
 void pballoc_free_at_last(pubnub_t* pb);
-
-
-/**  Parses subscribe V2 response from Pubnub.
-
-     @todo Should probably find a better place for this
-     declaration...
-*/
-enum pubnub_res pbcc_parse_subscribe_v2_response(struct pbcc_context* p);
 
 
 #endif /* !defined INC_PUBNUB_INTERNAL_COMMON */

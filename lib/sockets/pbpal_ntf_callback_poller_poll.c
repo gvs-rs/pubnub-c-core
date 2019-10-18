@@ -163,6 +163,12 @@ int pbpal_ntf_poll_away(struct pbpal_poll_data* data, int ms)
     int rslt;
 
     if (0 == data->size) {
+#if !defined(_WIN32)
+        struct timespec sleep_time = { 0, 1000000 };
+        nanosleep(&sleep_time, NULL);
+#else
+        Sleep(1);
+#endif
         return 0;
     }
 
@@ -184,7 +190,7 @@ int pbpal_ntf_poll_away(struct pbpal_poll_data* data, int ms)
         size_t i;
         size_t apoll_size = data->size;
         for (i = 0; i < apoll_size; ++i) {
-            if (data->apoll[i].revents & (POLLIN | POLLOUT)) {
+            if (data->apoll[i].revents & (POLLIN | POLLOUT | POLLERR | POLLHUP | POLLNVAL)) {
                 pbntf_requeue_for_processing(data->apb[i]);
             }
         }

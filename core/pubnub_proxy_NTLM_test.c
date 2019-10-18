@@ -207,6 +207,11 @@ void pbpal_free(pubnub_t* pb)
     mock("pbpal_free", pb, "");
 }
 
+void pbpal_report_error_from_environment(pubnub_t* pb, char const* file, int line)
+{
+    mock("pbpal_report_error_from_environment", pb, "");
+}
+
 enum pbpal_resolv_n_connect_result pbpal_check_connect(pubnub_t* pb)
 {
     return (enum pbpal_resolv_n_connect_result)mock("pbpal_check_connect", pb, "");
@@ -476,6 +481,16 @@ void pbntf_lost_socket(pubnub_t* pb)
 void pbntf_update_socket(pubnub_t* pb)
 {
     mock("pbntf_update_socket", pb, "");
+}
+
+void pbntf_start_wait_connect_timer(pubnub_t* pb)
+{
+    /* This might be mocked at some point */
+}
+
+void pbntf_start_transaction_timer(pubnub_t* pb)
+{
+    /* This might be mocked at some point */
 }
 
 int pbntf_requeue_for_processing(pubnub_t* pb)
