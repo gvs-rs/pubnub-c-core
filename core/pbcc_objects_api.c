@@ -338,7 +338,6 @@ enum pubnub_res pbcc_create_space_prep(struct pbcc_context* pb,
 
     return (rslt != PNR_OK) ? rslt : PNR_STARTED;
 }
-<<<<<<< HEAD
     
 
 enum pubnub_res pbcc_get_space_prep(struct pbcc_context* pb,

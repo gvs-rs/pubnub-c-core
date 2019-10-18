@@ -1,9 +1,4 @@
 name: c-core
-<<<<<<< HEAD
-version: 2.9.0
-scm: github.com/pubnub/c-core
-changelog:
-=======
 version: 2.10.2
 scm: github.com/pubnub/c-core
 changelog:
@@ -54,7 +49,6 @@ changelog:
     changes:
       - type: enhancement
         text: Improvements in sockets and DNS error reporting
->>>>>>> master
   - version: v2.9.0
     date: Aug 9, 2019
     changes:
@@ -62,11 +56,8 @@ changelog:
         text: Introduce Signals support
       - type: enhancement
         text: Support subscribe V2 in C++ & Qt
-<<<<<<< HEAD
-=======
       - type: enhancement
         text: Add pubnub_stop() for graceful shutdown when using callback interface
->>>>>>> master
   - version: v2.8.4
     date: Jun 12, 2019
     changes:
