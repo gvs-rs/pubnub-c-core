@@ -284,7 +284,9 @@ enum pubnub_res pbcc_get_actions_prep(struct pbcc_context* pb,
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
     APPEND_URL_PARAM_M(pb, "start", start, '&');
     APPEND_URL_PARAM_M(pb, "end", end, '&');
-    APPEND_URL_PARAM_UNSIGNED_M(pb, "limit", (unsigned)limit, '&');
+    if (limit != 0) {
+        APPEND_URL_PARAM_UNSIGNED_M(pb, "limit", (unsigned)limit, '&');
+    }
 
     return PNR_STARTED;
 }

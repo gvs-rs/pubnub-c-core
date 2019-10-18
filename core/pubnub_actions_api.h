@@ -16,7 +16,8 @@
     response parsing function returns format error.
     @param pb The pubnub context. Can't be NULL
     @param channel The channel on which action is referring to.
-    @param message_timetoken The timetoken of a published message action is applying to
+    @param message_timetoken The timetoken(unquoted) of a published message action is
+                             applying to
     @param actype Action type
     @param value Json string describing the action that is to be added
     @return #PNR_STARTED on success, an error otherwise
@@ -81,8 +82,10 @@ enum pubnub_res pubnub_remove_action(pubnub_t* pb,
     format error.
     @param pb The pubnub context. Can't be NULL
     @param channel The channel on which actions are observed.
-    @param start Start action timetoken. Can be NULL meaning there is no lower limitation in time.
-    @param end End action timetoken. Can be NULL in which case upper time limit is present moment.
+    @param start Start action timetoken(unquoted). Can be NULL meaning there is no lower
+                 limitation in time.
+    @param end End action timetoken(unquoted). Can be NULL in which case upper time limit is
+               present moment.
     @param limit Number of actions to return in response. Regular values 1 - 100. If you set `0`,
                  that means “use the default”. At the time of this writing, default was 100.
                  Any value greater than 100 is considered an error.
@@ -121,11 +124,13 @@ enum pubnub_res pubnub_get_actions_more(pubnub_t* pb);
     format error.
     @param pb The pubnub context. Can't be NULL
     @param channel The channel on which actions are observed.
-    @param start Start message timetoken. Can be NULL meaning there is no lower limitation in time.
-    @param end End message timetoken. Can be NULL in which case upper time limit is present moment.
-    @param limit Number of actions to return in response. Regular values 1 - 100. If you set `0`,
-                 that means “use the default”. At the time of this writing, default was 100.
-                 Any value greater than 100 is considered an error.
+    @param start Start message timetoken(unquoted). Can be NULL meaning there is no lower
+                 limitation in time.
+    @param end End message timetoken(unquoted). Can be NULL in which case upper time limit
+               is present moment.
+    @param limit Number of messages to return in response. Regular values 1 - 100. If you
+                 set `0`, that means “use the default”. At the time of this writing, default
+                 was 100. Any value greater than 100 is considered an error.
     @return #PNR_STARTED on success, an error otherwise
   */
 enum pubnub_res pubnub_history_with_actions(pubnub_t* pb,
