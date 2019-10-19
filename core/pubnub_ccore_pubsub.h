@@ -137,6 +137,20 @@ struct pbcc_context {
 
 #define APPEND_URL_LITERAL_M(pbc, string_literal) APPEND_URL_LITERAL_M_IMP(pbc, "" string_literal)
 
+#define APPEND_URL_STRING_M(pbc, string, size)                                 \
+    if ((string) != NULL) {                                                    \
+        if ((pbc)->http_buf_len + (size) > sizeof (pbc)->http_buf) {           \
+            PUBNUB_LOG_ERROR("Error: Request buffer too small - cannot append url string:\n"\
+                             "current_buffer_size = %lu\n"                     \
+                             "required_buffer_size = %lu\n",                   \
+                             (unsigned long)(sizeof (pbc)->http_buf),          \
+                             (unsigned long)((pbc)->http_buf_len + 1 + (size)));\
+            return PNR_TX_BUFF_TOO_SMALL;                                      \
+        }                                                                      \
+        strncpy((pbc)->http_buf + (pbc)->http_buf_len, string, size);          \
+        (pbc)->http_buf_len += size;                                           \
+    }
+
 #define APPEND_URL_ENCODED_M(pbc, what)                                        \
     if ((what) != NULL) {                                                      \
         enum pubnub_res rslt_ = pbcc_url_encode((pbc), (what));                \

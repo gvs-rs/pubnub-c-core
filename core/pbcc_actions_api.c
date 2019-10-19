@@ -14,8 +14,7 @@
 
 /* Maximum number of actions to return in response */
 #define MAX_ACTIONS_LIMIT 100
-/* Maximium timetoken length */
-#define TT_MAX_SIZE 30
+
 
 enum pubnub_res pbcc_form_the_action_object(struct pbcc_context* pb,
                                             char* obj_buffer,
@@ -201,8 +200,6 @@ enum pubnub_res pbcc_remove_action_prep(struct pbcc_context* pb,
                                         pubnub_chamebl_t message_timetoken,
                                         pubnub_chamebl_t action_timetoken)
 {
-    char message_tt_str[TT_MAX_SIZE + 1];
-    char action_tt_str[TT_MAX_SIZE + 1];
     char const* const uname = pubnub_uname();
     char const*       uuid = pbcc_uuid_get(pb);
 
@@ -230,16 +227,6 @@ enum pubnub_res pbcc_remove_action_prep(struct pbcc_context* pb,
                          action_timetoken.ptr);
         return PNR_INVALID_PARAMETERS;
     }
-    snprintf(message_tt_str,
-             sizeof message_tt_str,
-             "%.*s",
-             (int)(message_timetoken.size - 2),
-             message_timetoken.ptr + 1);
-    snprintf(action_tt_str,
-             sizeof action_tt_str,
-             "%.*s",
-             (int)(action_timetoken.size - 2),
-             action_timetoken.ptr + 1);
 
     pb->http_content_len = 0;
     pb->msg_ofs = pb->msg_end = 0;
@@ -249,9 +236,9 @@ enum pubnub_res pbcc_remove_action_prep(struct pbcc_context* pb,
                                 pb->subscribe_key);
     APPEND_URL_ENCODED_M(pb, channel);
     APPEND_URL_LITERAL_M(pb, "/message/");
-    APPEND_URL_ENCODED_M(pb, message_tt_str);
+    APPEND_URL_STRING_M(pb, message_timetoken.ptr + 1, message_timetoken.size - 2);
     APPEND_URL_LITERAL_M(pb, "/action/");
-    APPEND_URL_ENCODED_M(pb, action_tt_str);
+    APPEND_URL_STRING_M(pb, action_timetoken.ptr + 1, action_timetoken.size - 2);
     APPEND_URL_PARAM_M(pb, "pnsdk", uname, '?');
     APPEND_URL_PARAM_M(pb, "uuid", uuid, '&');
     APPEND_URL_PARAM_M(pb, "auth", pb->auth, '&');
