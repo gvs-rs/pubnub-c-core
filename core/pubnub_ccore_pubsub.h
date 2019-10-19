@@ -147,8 +147,11 @@ struct pbcc_context {
                              (unsigned long)((pbc)->http_buf_len + 1 + (size)));\
             return PNR_TX_BUFF_TOO_SMALL;                                      \
         }                                                                      \
-        strncpy((pbc)->http_buf + (pbc)->http_buf_len, string, size);          \
-        (pbc)->http_buf_len += size;                                           \
+        (pbc)->http_buf_len += snprintf((pbc)->http_buf + (pbc)->http_buf_len, \
+                                        sizeof (pbc)->http_buf - (pbc)->http_buf_len - 1,\
+                                        "%.*s",                                \
+                                        (int)size,                             \
+                                        string);                               \
     }
 
 #define APPEND_URL_ENCODED_M(pbc, what)                                        \
