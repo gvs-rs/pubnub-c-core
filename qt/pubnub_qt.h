@@ -16,7 +16,9 @@
 #include <QPair>
 
 extern "C" {
+#include "core/pubnub_server_limits.h"
 #include "core/pubnub_api_types.h"
+#include "core/pubnub_ccore_limits.h"
 #include "core/pubnub_helper.h"
 #if PUBNUB_USE_SUBSCRIBE_V2
 #include "core/pbcc_subscribe_v2.h"
@@ -1827,7 +1829,7 @@ public:
         When preconditions are fulfilled, it searches the hyperlink to the rest in the existing
         response buffer which it uses for obtaining another part of the server response.
         Anotherwords, once the hyperlink is found in the existing response it is used for
-        initiating new request and function than behaves, essentially, as get_actions().
+        initiating new request and function than behaves, essentially, as get_message_actions().
         If there is no hyperlink encountered in the previous transaction response it
         returns success: PNR_GOT_ALL_ACTIONS meaning that the answer is complete.
         @retval PNR_STARTED transaction successfully initiated.
@@ -1864,7 +1866,7 @@ public:
         When preconditions are fulfilled it searches for the hyperlink to the rest of the answer
         in the existing response buffer which it uses for obtaining another part of the server
         response. Anotherwords, once the hyperlink is found in the existing response it is used
-        for initiating new request and function than behaves as history_with_actions().
+        for initiating new request and function than behaves as history_with_message_actions().
         If there is no hyperlink encountered in the previous transaction response it
         returns success: PNR_GOT_ALL_ACTIONS meaning that the answer is complete.
         @retval PNR_STARTED transaction successfully initiated.

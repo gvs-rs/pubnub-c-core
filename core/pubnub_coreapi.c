@@ -1,9 +1,9 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#include "pubnub_coreapi.h"
+#include "pubnub_internal.h"
 
+#include "pubnub_coreapi.h"
 #include "pubnub_ccore.h"
 #include "pubnub_netcore.h"
-#include "pubnub_internal.h"
 #include "pubnub_assert.h"
 #include "pubnub_timers.h"
 
@@ -18,9 +18,119 @@
 #endif
 
 
+#if PUBNUB_USE_AUTO_HEARTBEAT
+#include "lib/pb_strnlen_s.h"
+static void update_list(char** list, const char* leave_list)
+{
+    size_t ll_len;
+    const char* ll_end;
+    
+    PUBNUB_ASSERT_OPT(list != NULL);
+    PUBNUB_ASSERT_OPT(leave_list != NULL);
+
+    ll_len = pb_strnlen_s(leave_list, PUBNUB_MAX_OBJECT_LENGTH);
+    if (0 == ll_len) {
+        return;
+    }
+    ll_end = leave_list + ll_len;
+    for (const char* ll_start = leave_list; ll_start < ll_end;) {            
+        const char* ch_end = (const char*)memchr(ll_start, ',', ll_end - ll_start);
+        size_t ch_len;
+        size_t list_len = pb_strnlen_s(*list, PUBNUB_MAX_OBJECT_LENGTH);
+        char* list_end;
+        
+        if (0 == list_len) {
+            break;
+        }
+        list_end = *list + list_len;
+        if (NULL == ch_end) {
+            ch_end = ll_end;
+        }
+        ch_len = ch_end - ll_start;
+        for (char* list_start = *list; list_start < list_end;) {
+            char* list_ch_end = (char*)memchr(list_start, ',', list_end - list_start);
+
+            if (NULL == list_ch_end) {
+                list_ch_end = list_end;
+            }
+            if ((strncmp(list_start, ll_start, ch_len) == 0) &&
+                ((size_t)(list_ch_end - list_start) == ch_len)) {
+                size_t rest = list_end - list_ch_end + 1;
+                if (rest > 1) {
+                    /* Moves everything behind next comma including string end */
+                    memmove(list_start, list_ch_end + 1, rest);
+                }
+                else {
+                    /* Erases last comma if any */
+                    list_start[(list_start > *list) ? -1 : 0] = '\0';
+                }
+            }
+            list_start = list_ch_end + 1;
+        }
+        ll_start = ch_end + 1;
+    }
+    if (0 == pb_strnlen_s(*list, PUBNUB_MAX_OBJECT_LENGTH)) {
+        free(*list);
+        *list = NULL;
+    }
+}
+
+
+static void update_channels_and_ch_groups(pubnub_t* pb,
+                                          const char* channel,
+                                          const char* channel_group)
+{
+    PUBNUB_ASSERT_OPT(pb_valid_ctx_ptr(pb));
+
+    if ((NULL == channel) && (NULL == channel_group)) {
+        pbauto_heartbeat_free_register(pb);
+    }
+    if ((pb->autoRegister.channel != NULL) && (channel != NULL)) {
+        update_list(&pb->autoRegister.channel, channel);
+    }
+    if ((pb->autoRegister.channel_group != NULL) && (channel_group != NULL)) {
+        update_list(&pb->autoRegister.channel_group, channel_group);
+    }
+}
+
+
+static void check_if_default_channel_and_groups(pubnub_t* p,
+                                                char const* channel,
+                                                char const* channel_group,
+                                                char const** prep_channel,
+                                                char const** prep_channel_group)
+{
+    PUBNUB_ASSERT_OPT(prep_channel != NULL);
+    PUBNUB_ASSERT_OPT(prep_channel_group != NULL);
+
+    if ((NULL == channel) && (NULL == channel_group)) {
+        *prep_channel = p->autoRegister.channel;
+        *prep_channel_group = p->autoRegister.channel_group;
+    }
+    else {
+        *prep_channel = channel;
+        *prep_channel_group = channel_group;
+    }
+}
+#else
+#define update_channels_and_ch_groups(pb, channel, channel_group)
+#define check_if_default_channel_and_groups(p,                         \
+                                            channel,                   \
+                                            channel_group,             \
+                                            prep_channel,              \
+                                            prep_channel_group)        \
+    do {                                                               \
+        *(prep_channel) = (channel);                                   \
+        *(prep_channel_group) = (channel_group);                       \
+    } while(0)
+#endif /* PUBNUB_USE_AUTO_HEARTBEAT */
+
+
 enum pubnub_res pubnub_leave(pubnub_t* p, const char* channel, const char* channel_group)
 {
     enum pubnub_res rslt;
+    char const* prep_channel;
+    char const* prep_channel_group;
 
     PUBNUB_ASSERT(pb_valid_ctx_ptr(p));
 
@@ -29,11 +139,17 @@ enum pubnub_res pubnub_leave(pubnub_t* p, const char* channel, const char* chann
         pubnub_mutex_unlock(p->monitor);
         return PNR_IN_PROGRESS;
     }
-
-    rslt = pbcc_leave_prep(&p->core, channel, channel_group);
+    check_if_default_channel_and_groups(p,
+                                        channel,
+                                        channel_group,
+                                        &prep_channel,
+                                        &prep_channel_group);
+    
+    rslt = pbcc_leave_prep(&p->core, prep_channel, prep_channel_group);
     if (PNR_STARTED == rslt) {
         p->trans            = PBTT_LEAVE;
         p->core.last_result = PNR_STARTED;
+        update_channels_and_ch_groups(p, channel, channel_group);
         pbnc_fsm(p);
         rslt = p->core.last_result;
     }

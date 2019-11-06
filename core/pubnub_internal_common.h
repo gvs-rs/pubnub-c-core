@@ -51,6 +51,11 @@
 #define PUBNUB_USE_ACTIONS_API 0
 #endif
 
+#if !defined(PUBNUB_USE_AUTO_HEARTBEAT)
+#define PUBNUB_USE_AUTO_HEARTBEAT 0
+#endif
+#include "core/pubnub_auto_heartbeat.h"
+
 #if !defined(PUBNUB_PROXY_API)
 #define PUBNUB_PROXY_API 0
 #elif PUBNUB_PROXY_API
@@ -209,6 +214,10 @@ struct pubnub_flags {
         connection.
       */
     bool retry_after_close : 1;
+#endif
+#if PUBNUB_USE_AUTO_HEARTBEAT
+    /** Is auto heartbeat presence feature enabled on context */
+    bool auto_heartbeat_enabled : 1;
 #endif
     /** Indicates whether current transaction started while connection
         was kept alive(by client)(true:yes, false:no).
@@ -388,7 +397,13 @@ struct pubnub_ {
     struct pubnub_multi_addresses spare_addresses;
 #endif
 #endif /* defined(PUBNUB_CALLBACK_API) */
-    
+
+    /** Subscribed channels and channel groups saved
+        and auto heartbeat thumper index used for keeping presence on these.
+        Exist when auto heartbeat support is enabled.
+      */
+    M_channel_ch_group_n_thumperIndex();
+
 #if PUBNUB_PROXY_API
 
     /** The type (protocol) of the proxy to use */

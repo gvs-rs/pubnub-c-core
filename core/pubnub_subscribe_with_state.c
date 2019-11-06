@@ -1,8 +1,8 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#include "pubnub_coreapi.h"
-
-#include "pubnub_netcore.h"
 #include "pubnub_internal.h"
+
+#include "pubnub_coreapi.h"
+#include "pubnub_netcore.h"
 #include "pubnub_assert.h"
 #include "pubnub_version.h"
 #include "pubnub_url_encode.h"
@@ -49,7 +49,10 @@ static enum pubnub_res pbcc_subscribe_with_state_prep(struct pbcc_context *p,
 }
 
 
-enum pubnub_res pubnub_subscribe_with_state(pubnub_t *p, const char *channel, const char *channel_group, char const *state)
+enum pubnub_res pubnub_subscribe_with_state(pubnub_t *p,
+                                            const char *channel,
+                                            const char *channel_group,
+                                            char const *state)
 {
     enum pubnub_res rslt;
 
@@ -60,6 +63,7 @@ enum pubnub_res pubnub_subscribe_with_state(pubnub_t *p, const char *channel, co
         pubnub_mutex_unlock(p->monitor);
         return PNR_IN_PROGRESS;
     }
+    pbauto_heartbeat_form_channels_and_ch_groups(pb, &channel, &channel_group);
     
     rslt = pbcc_subscribe_with_state_prep(&p->core, channel, channel_group, state);
     if (PNR_STARTED == rslt) {
