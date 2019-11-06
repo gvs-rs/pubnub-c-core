@@ -12,7 +12,7 @@
         char* channel;                                        \
         char* channel_group;                                  \
         int8_t thumperIndex;                                  \
-    } autoRegister
+    } autoRegister;
 
 /** Enables keeping presence on subscribed channels and channel groups.
     Initially auto heartbeat on @p pb context is disabled.

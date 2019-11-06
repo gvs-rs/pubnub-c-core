@@ -402,7 +402,7 @@ struct pubnub_ {
         and auto heartbeat thumper index used for keeping presence on these.
         Exist when auto heartbeat support is enabled.
       */
-    M_channel_ch_group_n_thumperIndex();
+    M_channel_ch_group_n_thumperIndex()
 
 #if PUBNUB_PROXY_API
 

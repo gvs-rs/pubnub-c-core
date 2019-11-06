@@ -22,6 +22,7 @@
 #include "lib/pb_strnlen_s.h"
 static void update_list(char** list, const char* leave_list)
 {
+    const char* ll_start;
     size_t ll_len;
     const char* ll_end;
     
@@ -33,9 +34,10 @@ static void update_list(char** list, const char* leave_list)
         return;
     }
     ll_end = leave_list + ll_len;
-    for (const char* ll_start = leave_list; ll_start < ll_end;) {            
+    for (ll_start = leave_list; ll_start < ll_end;) {            
         const char* ch_end = (const char*)memchr(ll_start, ',', ll_end - ll_start);
         size_t ch_len;
+        char* list_start;
         size_t list_len = pb_strnlen_s(*list, PUBNUB_MAX_OBJECT_LENGTH);
         char* list_end;
         
@@ -47,7 +49,7 @@ static void update_list(char** list, const char* leave_list)
             ch_end = ll_end;
         }
         ch_len = ch_end - ll_start;
-        for (char* list_start = *list; list_start < list_end;) {
+        for (list_start = *list; list_start < list_end;) {
             char* list_ch_end = (char*)memchr(list_start, ',', list_end - list_start);
 
             if (NULL == list_ch_end) {

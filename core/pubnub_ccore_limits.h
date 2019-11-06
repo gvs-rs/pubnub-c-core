@@ -9,4 +9,4 @@
 #define PUBNUB_MIN_TRANSACTION_TIMER 10000
 #endif
 
-#endif /* !defined INC_PUBNUB_CCOR_LIMITS */
+#endif /* !defined INC_PUBNUB_CCORE_LIMITS */
