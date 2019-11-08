@@ -5,16 +5,10 @@
 #include "core/pubnub_ccore.h"
 #include "core/pubnub_netcore.h"
 #include "core/pubnub_assert.h"
-//
-#include "core/pubnub_log.h"
-//
 #include "core/pubnub_timers.h"
 
 #include "core/pbpal.h"
 
-//
-#include <stddef.h>
-//
 #include <ctype.h>
 #include <string.h>
 
@@ -38,7 +32,7 @@ pubnub_t* pubnub_init(pubnub_t* p, const char* publish_key, const char* subscrib
     p->flags.sent_queries = 0;
 #if PUBNUB_USE_AUTO_HEARTBEAT
     p->flags.auto_heartbeat_enabled = false;
-    p->autoRegister.thumperIndex = -1;
+    p->autoRegister.thumperIndex = UNASSIGNED;
     p->autoRegister.channel = NULL;
     p->autoRegister.channel_group = NULL;
 #endif /* PUBNUB_AUTO_HEARTBEAT */
@@ -187,7 +181,10 @@ enum pubnub_res pubnub_subscribe(pubnub_t*   p,
         pubnub_mutex_unlock(p->monitor);
         return PNR_IN_PROGRESS;
     }
-    pbauto_heartbeat_form_channels_and_ch_groups(p, &channel, &channel_group);
+    rslt = pbauto_heartbeat_form_channels_and_ch_groups(p, &channel, &channel_group);
+    if (rslt != PNR_OK) {
+        return rslt;
+    }
 
     rslt = pbcc_subscribe_prep(&p->core, channel, channel_group, NULL);
     if (PNR_STARTED == rslt) {

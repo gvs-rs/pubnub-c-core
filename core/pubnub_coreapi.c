@@ -20,13 +20,51 @@
 
 #if PUBNUB_USE_AUTO_HEARTBEAT
 #include "lib/pb_strnlen_s.h"
-static void update_list(char** list, const char* leave_list)
+static int exclude_member(char** list, const char* member, size_t member_len)
+{
+    char* list_start;
+    size_t list_len;
+    char* list_end;
+
+    PUBNUB_ASSERT_OPT(list != NULL);
+
+    list_len = pb_strnlen_s(*list, PUBNUB_MAX_OBJECT_LENGTH);
+    if (0 == list_len) {
+        return -1;
+    }
+    list_end = *list + list_len;
+    for (list_start = *list; list_start < list_end;) {
+        char* list_ch_end = (char*)memchr(list_start, ',', list_end - list_start);
+
+        if (NULL == list_ch_end) {
+            list_ch_end = list_end;
+        }
+        if ((strncmp(list_start, member, member_len) == 0) &&
+            ((size_t)(list_ch_end - list_start) == member_len)) {
+            size_t rest = list_end - list_ch_end + 1;
+            if (rest > 1) {
+                /* Moves everything behind next comma including string end */
+                memmove(list_start, list_ch_end + 1, rest);
+            }
+            else {
+                /* Erases last comma if any */
+                list_start[(list_start > *list) ? -1 : 0] = '\0';
+            }
+            break;
+        }
+        list_start = list_ch_end + 1;
+    }
+
+    return 0;
+}
+
+
+static void exclude_from_list(char** list, const char* leave_list)
 {
     const char* ll_start;
     size_t ll_len;
     const char* ll_end;
     
-    PUBNUB_ASSERT_OPT(list != NULL);
     PUBNUB_ASSERT_OPT(leave_list != NULL);
 
     ll_len = pb_strnlen_s(leave_list, PUBNUB_MAX_OBJECT_LENGTH);
@@ -36,38 +74,11 @@ static void update_list(char** list, const char* leave_list)
     ll_end = leave_list + ll_len;
     for (ll_start = leave_list; ll_start < ll_end;) {            
         const char* ch_end = (const char*)memchr(ll_start, ',', ll_end - ll_start);
-        size_t ch_len;
-        char* list_start;
-        size_t list_len = pb_strnlen_s(*list, PUBNUB_MAX_OBJECT_LENGTH);
-        char* list_end;
-        
-        if (0 == list_len) {
-            break;
-        }
-        list_end = *list + list_len;
         if (NULL == ch_end) {
             ch_end = ll_end;
         }
-        ch_len = ch_end - ll_start;
-        for (list_start = *list; list_start < list_end;) {
-            char* list_ch_end = (char*)memchr(list_start, ',', list_end - list_start);
-
-            if (NULL == list_ch_end) {
-                list_ch_end = list_end;
-            }
-            if ((strncmp(list_start, ll_start, ch_len) == 0) &&
-                ((size_t)(list_ch_end - list_start) == ch_len)) {
-                size_t rest = list_end - list_ch_end + 1;
-                if (rest > 1) {
-                    /* Moves everything behind next comma including string end */
-                    memmove(list_start, list_ch_end + 1, rest);
-                }
-                else {
-                    /* Erases last comma if any */
-                    list_start[(list_start > *list) ? -1 : 0] = '\0';
-                }
-            }
-            list_start = list_ch_end + 1;
+        if (exclude_member(list, ll_start, ch_end - ll_start) != 0) {
+            break;
         }
         ll_start = ch_end + 1;
     }
@@ -85,13 +96,13 @@ static void update_channels_and_ch_groups(pubnub_t* pb,
     PUBNUB_ASSERT_OPT(pb_valid_ctx_ptr(pb));
 
     if ((NULL == channel) && (NULL == channel_group)) {
-        pbauto_heartbeat_free_register(pb);
+        pbauto_heartbeat_free_info(pb);
     }
     if ((pb->autoRegister.channel != NULL) && (channel != NULL)) {
-        update_list(&pb->autoRegister.channel, channel);
+        exclude_from_list(&pb->autoRegister.channel, channel);
     }
     if ((pb->autoRegister.channel_group != NULL) && (channel_group != NULL)) {
-        update_list(&pb->autoRegister.channel_group, channel_group);
+        exclude_from_list(&pb->autoRegister.channel_group, channel_group);
     }
 }
 

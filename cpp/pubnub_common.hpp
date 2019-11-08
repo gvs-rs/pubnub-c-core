@@ -1427,33 +1427,33 @@ public:
 
 #if PUBNUB_USE_AUTO_HEARTBEAT
     /// Enables keeping presence on subscribed channels and channel groups
-    /// @see pubnub_enable_auto_hearbeat()
-    int enable_auto_hearbeat(size_t period_sec)
+    /// @see pubnub_enable_auto_heartbeat()
+    int enable_auto_heartbeat(size_t period_sec)
     {
-        return pubnub_enable_auto_hearbeat(d_pb, period_sec);
+        return pubnub_enable_auto_heartbeat(d_pb, period_sec);
     }
 
     /// Sets(changes) heartbeat period for keeping presence on subscribed channels
     /// and channel groups.
-    /// @see pubnub_set_heatrbeat_period()
-    int set_heatrbeat_period(size_t period_sec)
+    /// @see pubnub_set_heartbeat_period()
+    int set_heartbeat_period(size_t period_sec)
     {
-        return pubnub_set_heatrbeat_period(d_pb, period_sec);
+        return pubnub_set_heartbeat_period(d_pb, period_sec);
     }
 
     /// Disables keeping presence on subscribed channels and channel groups
-    /// @see pubnub_disable_auto_hearbeat()
-    void disable_auto_hearbeat()
+    /// @see pubnub_disable_auto_heartbeat()
+    void disable_auto_heartbeat()
     {
-        pubnub_disable_auto_hearbeat(d_pb);
+        pubnub_disable_auto_heartbeat(d_pb);
     }
 
     /// Returns whether(, or not) auto heartbeat on subscribed channels and channel
     /// groups is enabled
-    /// @see pubnub_is_auto_hertbeat_enabled()
-    bool is_auto_hertbeat_enabled()
+    /// @see pubnub_is_auto_heartbeat_enabled()
+    bool is_auto_heartbeat_enabled()
     {
-        return pubnub_is_auto_hertbeat_enabled(d_pb);
+        return pubnub_is_auto_heartbeat_enabled(d_pb);
     }
 
     /// Releases all allocated heartbeat thumpers.

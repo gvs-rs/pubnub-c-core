@@ -63,7 +63,10 @@ enum pubnub_res pubnub_subscribe_with_state(pubnub_t *p,
         pubnub_mutex_unlock(p->monitor);
         return PNR_IN_PROGRESS;
     }
-    pbauto_heartbeat_form_channels_and_ch_groups(pb, &channel, &channel_group);
+    rslt = pbauto_heartbeat_form_channels_and_ch_groups(pb, &channel, &channel_group);
+    if (rslt != PNR_OK) {
+        return rslt;
+    }
     
     rslt = pbcc_subscribe_with_state_prep(&p->core, channel, channel_group, state);
     if (PNR_STARTED == rslt) {

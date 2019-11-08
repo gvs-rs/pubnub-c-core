@@ -101,7 +101,10 @@ enum pubnub_res pubnub_subscribe_ex(pubnub_t*                       p,
         pubnub_mutex_unlock(p->monitor);
         return PNR_IN_PROGRESS;
     }
-    pbauto_heartbeat_form_channels_and_ch_groups(p, &channel, &opt.channel_group);
+    rslt = pbauto_heartbeat_form_channels_and_ch_groups(p, &channel, &opt.channel_group);
+    if (rslt != PNR_OK) {
+        return rslt;
+    }
     
     rslt = pbcc_subscribe_prep(
         &p->core, channel, opt.channel_group, &opt.heartbeat);

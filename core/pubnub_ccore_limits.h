@@ -2,7 +2,7 @@
 #if !defined INC_PUBNUB_CCORE_LIMITS
 #define      INC_PUBNUB_CCORE_LIMITS
 
-/** Mininmal duration of the transaction timer, in milliseconds. You
+/** Minimal duration of the transaction timer, in milliseconds. You
  * can't set less than this.
  */
 #if !defined PUBNUB_MIN_TRANSACTION_TIMER
