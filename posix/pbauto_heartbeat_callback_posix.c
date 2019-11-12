@@ -161,19 +161,6 @@ static void heartbeat_thump(pubnub_t* pb, pubnub_t* heartbeat_pb)
 }
 
 
-static void init_and_thump_again_if_keys_were_changed(pubnub_t* heartbeat_pb, pubnub_t* pb)
-{
-    PUBNUB_ASSERT_OPT(pb_valid_ctx_ptr(pb));
-
-    pubnub_mutex_lock(pb->monitor);    
-    if (pubsub_keys_changed(heartbeat_pb, pb)) {
-        pubnub_init(heartbeat_pb, pb->core.publish_key, pb->core.subscribe_key);            
-        heartbeat_thump(pb, heartbeat_pb);
-    }
-    pubnub_mutex_unlock(pb->monitor);
-}
-
-
 static void auto_heartbeat_callback(pubnub_t*         heartbeat_pb,
                                     enum pubnub_trans trans,
                                     enum pubnub_res   result,
@@ -202,11 +189,16 @@ static void auto_heartbeat_callback(pubnub_t*         heartbeat_pb,
                                heartbeat_pb,
                                result,
                                pubnub_res_2_string(result));
-            /* Depending on kind of error try thumping again */
+            /* Depending on the kind of error try thumping again */
             heartbeat_thump(pb, heartbeat_pb);
         }
         else if (pb != NULL) {
-            init_and_thump_again_if_keys_were_changed(heartbeat_pb, pb);
+            pubnub_mutex_lock(pb->monitor);    
+            if (pubsub_keys_changed(heartbeat_pb, pb)) {
+                pubnub_init(heartbeat_pb, pb->core.publish_key, pb->core.subscribe_key);            
+                heartbeat_thump(pb, heartbeat_pb);
+            }
+            pubnub_mutex_unlock(pb->monitor);
         }
     }
 }
@@ -594,7 +586,7 @@ static void release_thumper(unsigned thumper_index)
     }
 }
 
-/** If it is a thumper pubnub context it is excepted */
+/** If it is a thumper pubnub context, it is excepted from some usual procedures. */
 static bool is_excepted(pubnub_t const* pb, unsigned thumper_index)
 {
     pubnub_t const* pb_excepted;
@@ -664,8 +656,8 @@ void pbauto_heartbeat_read_channelInfo(pubnub_t const* pb,
 
 
 static enum pubnub_res write_auto_heartbeat_channelInfo(pubnub_t* pb,
-                                                 char const* channel,
-                                                 char const* channel_group)
+                                                        char const* channel,
+                                                        char const* channel_group)
 {
     PUBNUB_ASSERT_OPT((channel != NULL) || (channel_group != NULL));
 

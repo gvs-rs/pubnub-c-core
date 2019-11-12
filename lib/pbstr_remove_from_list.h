@@ -7,7 +7,7 @@
 void pbstr_remove_from_list(char* list, const char* leave_list);
 
 /** Called only if list is allocated dinamically.
-    Liberates memory if list string is empty.
+    Frees memory if list string is empty.
   */
 void pbstr_free_if_empty(char** list);
 
