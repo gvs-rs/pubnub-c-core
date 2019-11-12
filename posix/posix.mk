@@ -73,6 +73,11 @@ SOURCEFILES += ../core/pbcc_actions_api.c ../core/pubnub_actions_api.c
 OBJFILES += pbcc_actions_api.o pubnub_actions_api.o
 endif
 
+ifeq ($(USE_AUTO_HEARTBEAT), 1)
+SOURCEFILES += ../lib/pbstr_remove_from_list.c
+OBJFILES += pbstr_remove_from_list.o
+endif
+
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
 SOURCEFILES += monotonic_clock_get_time_darwin.c

@@ -64,6 +64,10 @@ ifeq ($(USE_ACTIONS_API), 1)
 SOURCEFILES += ../core/pbcc_actions_api.c ../core/pubnub_actions_api.c
 endif
 
+ifeq ($(USE_AUTO_HEARTBEAT), 1)
+SOURCEFILES += ../lib/pbstr_remove_from_list.c
+endif
+
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
 SOURCEFILES += ../posix/monotonic_clock_get_time_darwin.c

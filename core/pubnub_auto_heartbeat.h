@@ -7,83 +7,98 @@
 #define PUBNUB_MAX_HEARTBEAT_THUMPERS 16
 #define UNASSIGNED PUBNUB_MAX_HEARTBEAT_THUMPERS
 
-/** Pubnub context fields for saving subscribed channels, channel groups
-    and heartbeat thumper context index used by the module for keeping presence.
+
+/** Pubnub context fields for saving subscribed channels and channel groups
   */
-#define M_channel_ch_group_n_thumperIndex()                   \
+#define M_channelInfo()                                       \
     struct {                                                  \
         char* channel;                                        \
         char* channel_group;                                  \
-        unsigned thumperIndex;                                \
-    } autoRegister;
+    } channelInfo;
 
-/** Enables keeping presence on subscribed channels and channel groups.
+/** Pubnub context fields for heartbeat info used by the module for keeping presence.
+ */
+#define M_heartbeatInfo() unsigned thumperIndex;
+
+/** Enables periodical heartbeats that keep presence on subscribed channels and channel
+    groups for uuid provided in @p pb context and sets chosen heartbeat period.
     Initially auto heartbeat on @p pb context is disabled.
+
     This module keeps presence by performing pubnub_heartbeat() transaction periodicaly
     with uuid given whenever subscription on @p pb context is not in progress and
-    auto heartbeat is not disabled. This process is independent from anything user
-    may by doing with the context when its not subscribing.
+    auto heartbeat is enabled. This process is independent from anything user
+    may be doing with the context when its not subscribing(, or heartbeating).
+
     If the uuid(or any other relevant data, like dns server, or proxy) is changed at
     some point, the module will update it automatically in its heartbeats.
-    The same goes if the pubnub context leaves some of the channels, or channel groups.
+    The same goes if the uuid leaves some of the channels, or channel groups.
+
     @param pb The pubnub context. Can't be NULL
-    @param period_sec Auto heartbeat thumping period
+    @param period_sec Auto heartbeat thumping period in seconds
     @return 0 on success, -1 otherwise
   */
 int pubnub_enable_auto_heartbeat(pubnub_t* pb, size_t period_sec);
 
-/** Sets(changes) auto heartbeat thumping period.
+/** Changes auto heartbeat thumping period. If auto heartbeat is desabled on
+    the @p pb context the period wan't be changed and function returns error.
     @param pb The pubnub context. Can't be NULL
-    @param period_sec Auto heartbeat thumping period
+    @param period_sec Auto heartbeat thumping period in seconds
     @return 0 on success, -1 otherwise
   */
 int pubnub_set_heartbeat_period(pubnub_t* pb, size_t period_sec);
 
-/** Desables auto heartbeat on the @p pb context.
+/** Disables auto heartbeat on the @p pb context.
   */
 void pubnub_disable_auto_heartbeat(pubnub_t* pb);
 
-/** Tells if auto heartbeat is enabled on the @p pb context.
+/** Returns if auto heartbeat is enabled on the @p pb context.
   */
 bool pubnub_is_auto_heartbeat_enabled(pubnub_t* pb);
 
 /** Releases all allocated heartbeat thumpers.
-    @return 0 on success, -1 otherwise
   */
-int pubnub_heartbeat_free_thumpers(void);
+void pubnub_heartbeat_free_thumpers(void);
 
-/** Gives notice to auto heartbeat module that subscribe transaction has begun */
-int pbauto_heartbeat_notify(pubnub_t* pb);
-
-/** Commences auto heartbeat timer, if auto heartbeat is enabled and when subscribe transaction
-    is acomplished.
+/** Reads channel and channel groups saved(subscribed on)
   */
-int pbauto_heartbeat_start_timer(pubnub_t* pb);
+void pbauto_heartbeat_read_channelInfo(pubnub_t const* pb,
+                                       char const** channel,
+                                       char const** channel_group);
+
+/** Gives notice to auto heartbeat module that subscribe, or heartbeat transaction has begun */
+void pbauto_heartbeat_transaction_ongoing(pubnub_t const* pb);
+
+/** Starts auto heartbeat timer, if auto heartbeat is enabled, when subscribe transaction
+    is finished.
+  */
+void pbauto_heartbeat_start_timer(pubnub_t const* pb);
 
 /** Releases allocated strings for subscribed channels and channel groups
   */
-void pbauto_heartbeat_free_info(pubnub_t* pb);
+void pbauto_heartbeat_free_channelInfo(pubnub_t* pb);
 
-/** Saves channels and channel groups, or if both NULL reads saved from the context.
+/** Preparess channels and channel groups, to be used in request url.
   */
-enum pubnub_res pbauto_heartbeat_form_channels_and_ch_groups(pubnub_t* pb,
-                                                             char const** channel,
-                                                             char const** channel_group);
+enum pubnub_res pbauto_heartbeat_prepare_channels_and_ch_groups(pubnub_t* pb,
+                                                                char const** channel,
+                                                                char const** channel_group);
 
 /** Stops auto heartbeat thread */
 void pbauto_heartbeat_stop(void);
 
 #else
-#define M_channel_ch_group_n_thumperIndex()
+#define M_channelInfo()
+#define M_heartbeatInfo()
 #define pubnub_enable_auto_heartbeat(pb, period_sec) -1
 #define pubnub_set_heartbeat_period(pb, period_sec) -1
 #define pubnub_disable_auto_heartbeat(pb)
 #define pubnub_is_auto_heartbeat_enabled(pb) false
-#define pubnub_heartbeat_free_thumpers() 0
-#define pbauto_heartbeat_notify(pb)
+#define pubnub_heartbeat_free_thumpers()
+#define pbauto_heartbeat_read_channelInfo(pb, channel, channel_group)
+#define pbauto_heartbeat_transaction_ongoing(pb)
 #define pbauto_heartbeat_start_timer(pb)
-#define pbauto_heartbeat_free_info(pb)
-#define pbauto_heartbeat_form_channels_and_ch_groups(pb, addr_channel, addr_channel_group) PNR_OK
+#define pbauto_heartbeat_free_channelInfo(pb)
+#define pbauto_heartbeat_prepare_channels_and_ch_groups(pb, addr_channel, addr_channel_group) PNR_OK
 #define pbauto_heartbeat_stop()
 #endif /* PUBNUB_USE_AUTO_HEARTBEAT */
 

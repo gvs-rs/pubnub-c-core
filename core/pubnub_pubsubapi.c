@@ -31,10 +31,9 @@ pubnub_t* pubnub_init(pubnub_t* p, const char* publish_key, const char* subscrib
     p->user_data = NULL;
     p->flags.sent_queries = 0;
 #if PUBNUB_USE_AUTO_HEARTBEAT
-    p->flags.auto_heartbeat_enabled = false;
-    p->autoRegister.thumperIndex = UNASSIGNED;
-    p->autoRegister.channel = NULL;
-    p->autoRegister.channel_group = NULL;
+    p->thumperIndex = UNASSIGNED;
+    p->channelInfo.channel = NULL;
+    p->channelInfo.channel_group = NULL;
 #endif /* PUBNUB_AUTO_HEARTBEAT */
 #endif /* defined(PUBNUB_CALLBACK_API) */
     if (PUBNUB_ORIGIN_SETTABLE) {
@@ -181,7 +180,7 @@ enum pubnub_res pubnub_subscribe(pubnub_t*   p,
         pubnub_mutex_unlock(p->monitor);
         return PNR_IN_PROGRESS;
     }
-    rslt = pbauto_heartbeat_form_channels_and_ch_groups(p, &channel, &channel_group);
+    rslt = pbauto_heartbeat_prepare_channels_and_ch_groups(p, &channel, &channel_group);
     if (rslt != PNR_OK) {
         return rslt;
     }

@@ -1020,7 +1020,7 @@ next_state:
         }
         break;
     case PBS_RX_HTTP_VER:
-        pbauto_heartbeat_notify(pb);
+        pbauto_heartbeat_transaction_ongoing(pb);
         pbrslt = pbpal_line_read_status(pb);
         PUBNUB_LOG_TRACE("pb=%p PBS_RX_HTTP_VER: pbrslt=%d\n", pb, pbrslt);
         switch (pbrslt) {

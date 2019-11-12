@@ -19,76 +19,7 @@
 
 
 #if PUBNUB_USE_AUTO_HEARTBEAT
-#include "lib/pb_strnlen_s.h"
-static int exclude_member(char** list, const char* member, size_t member_len)
-{
-    char* list_start;
-    size_t list_len;
-    char* list_end;
-
-    PUBNUB_ASSERT_OPT(list != NULL);
-
-    list_len = pb_strnlen_s(*list, PUBNUB_MAX_OBJECT_LENGTH);
-    if (0 == list_len) {
-        return -1;
-    }
-    list_end = *list + list_len;
-    for (list_start = *list; list_start < list_end;) {
-        char* list_ch_end = (char*)memchr(list_start, ',', list_end - list_start);
-
-        if (NULL == list_ch_end) {
-            list_ch_end = list_end;
-        }
-        if ((strncmp(list_start, member, member_len) == 0) &&
-            ((size_t)(list_ch_end - list_start) == member_len)) {
-            size_t rest = list_end - list_ch_end + 1;
-            if (rest > 1) {
-                /* Moves everything behind next comma including string end */
-                memmove(list_start, list_ch_end + 1, rest);
-            }
-            else {
-                /* Erases last comma if any */
-                list_start[(list_start > *list) ? -1 : 0] = '\0';
-            }
-            break;
-        }
-        list_start = list_ch_end + 1;
-    }
-
-    return 0;
-}
-
-
-static void exclude_from_list(char** list, const char* leave_list)
-{
-    const char* ll_start;
-    size_t ll_len;
-    const char* ll_end;
-    
-    PUBNUB_ASSERT_OPT(leave_list != NULL);
-
-    ll_len = pb_strnlen_s(leave_list, PUBNUB_MAX_OBJECT_LENGTH);
-    if (0 == ll_len) {
-        return;
-    }
-    ll_end = leave_list + ll_len;
-    for (ll_start = leave_list; ll_start < ll_end;) {            
-        const char* ch_end = (const char*)memchr(ll_start, ',', ll_end - ll_start);
-        if (NULL == ch_end) {
-            ch_end = ll_end;
-        }
-        if (exclude_member(list, ll_start, ch_end - ll_start) != 0) {
-            break;
-        }
-        ll_start = ch_end + 1;
-    }
-    if (0 == pb_strnlen_s(*list, PUBNUB_MAX_OBJECT_LENGTH)) {
-        free(*list);
-        *list = NULL;
-    }
-}
-
-
+#include "lib/pbstr_remove_from_list.h"
 static void update_channels_and_ch_groups(pubnub_t* pb,
                                           const char* channel,
                                           const char* channel_group)
@@ -96,17 +27,24 @@ static void update_channels_and_ch_groups(pubnub_t* pb,
     PUBNUB_ASSERT_OPT(pb_valid_ctx_ptr(pb));
 
     if ((NULL == channel) && (NULL == channel_group)) {
-        pbauto_heartbeat_free_info(pb);
+        /** pubnub_leave(default) releases both saved channels and channel groups */
+        pbauto_heartbeat_free_channelInfo(pb);
+        return;
     }
-    if ((pb->autoRegister.channel != NULL) && (channel != NULL)) {
-        exclude_from_list(&pb->autoRegister.channel, channel);
+    if ((pb->channelInfo.channel != NULL) && (channel != NULL)) {
+        pbstr_remove_from_list(pb->channelInfo.channel, channel);
+        pbstr_free_if_empty(&pb->channelInfo.channel);
     }
-    if ((pb->autoRegister.channel_group != NULL) && (channel_group != NULL)) {
-        exclude_from_list(&pb->autoRegister.channel_group, channel_group);
+    if ((pb->channelInfo.channel_group != NULL) && (channel_group != NULL)) {
+        pbstr_remove_from_list(pb->channelInfo.channel_group, channel_group);
+        pbstr_free_if_empty(&pb->channelInfo.channel_group);
     }
 }
 
-
+/** Prepares channel and channel groups to be used in pubnub_leave() url request.
+    Checks for default(saved) values if both parameters @p channel nad @p channel_group
+    are passed as NULL.
+  */
 static void check_if_default_channel_and_groups(pubnub_t* p,
                                                 char const* channel,
                                                 char const* channel_group,
@@ -117,8 +55,8 @@ static void check_if_default_channel_and_groups(pubnub_t* p,
     PUBNUB_ASSERT_OPT(prep_channel_group != NULL);
 
     if ((NULL == channel) && (NULL == channel_group)) {
-        *prep_channel = p->autoRegister.channel;
-        *prep_channel_group = p->autoRegister.channel_group;
+        /** Default read from pubnub context */
+        pbauto_heartbeat_read_channelInfo(p, prep_channel, prep_channel_group);
     }
     else {
         *prep_channel = channel;
@@ -238,6 +176,10 @@ enum pubnub_res pubnub_heartbeat(pubnub_t*   pb,
     if (!pbnc_can_start_transaction(pb)) {
         pubnub_mutex_unlock(pb->monitor);
         return PNR_IN_PROGRESS;
+    }
+    rslt = pbauto_heartbeat_prepare_channels_and_ch_groups(pb, &channel, &channel_group);
+    if (rslt != PNR_OK) {
+        return rslt;
     }
 
     rslt = pbcc_heartbeat_prep(&pb->core, channel, channel_group);

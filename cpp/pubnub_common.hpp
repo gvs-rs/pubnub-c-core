@@ -1459,9 +1459,9 @@ public:
     /// Releases all allocated heartbeat thumpers.
     /// Done on any object of the class, once, suffices.
     /// @see pubnub_heartbeat_free_thumpers()
-    int heartbeat_free_thumpers()
+    void heartbeat_free_thumpers()
     {
-        return pubnub_heartbeat_free_thumpers();
+        pubnub_heartbeat_free_thumpers();
     }
 #endif /* PUBNUB_USE_AUTO_HEARTBEAT */
     

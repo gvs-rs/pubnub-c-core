@@ -215,10 +215,6 @@ struct pubnub_flags {
       */
     bool retry_after_close : 1;
 #endif
-#if PUBNUB_USE_AUTO_HEARTBEAT
-    /** Is auto heartbeat presence feature enabled on context */
-    bool auto_heartbeat_enabled : 1;
-#endif
     /** Indicates whether current transaction started while connection
         was kept alive(by client)(true:yes, false:no).
         Used when deciding whether closed connection detected should be
@@ -398,11 +394,15 @@ struct pubnub_ {
 #endif
 #endif /* defined(PUBNUB_CALLBACK_API) */
 
-    /** Subscribed channels and channel groups saved
-        and auto heartbeat thumper index used for keeping presence on these.
+    /** Subscribed channels and channel groups saved.
         Exist when auto heartbeat support is enabled.
       */
-    M_channel_ch_group_n_thumperIndex()
+    M_channelInfo()
+    
+    /** Pubnub context fields for heartbeat info used by the module for keeping presence.
+        Exist when auto heartbeat support is enabled.
+      */
+    M_heartbeatInfo()
 
 #if PUBNUB_PROXY_API
 

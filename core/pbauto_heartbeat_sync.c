@@ -34,31 +34,36 @@ bool pubnub_is_auto_heartbeat_enabled(pubnub_t* pb)
     return false;
 }
 
-int pubnub_heartbeat_free_thumpers(void)
+void pubnub_heartbeat_free_thumpers(void)
 {
-    return 0;
+    return;
 }
 
-int pbauto_heartbeat_notify(pubnub_t* pb)
-{
-    PUBNUB_UNUSED(pb);
-    return 0;
-}
-
-int pbauto_heartbeat_start_timer(pubnub_t* pb)
-{
-    PUBNUB_UNUSED(pb);
-    return 0;
-}
-
-void pbauto_heartbeat_free_info(pubnub_t* pb)
+void pbauto_heartbeat_read_channelInfo(pubnub_t const* pb,
+                                       char const** channel,
+                                       char const** channel_group)
 {
     PUBNUB_UNUSED(pb);
 }
 
-enum pubnub_res pbauto_heartbeat_form_channels_and_ch_groups(pubnub_t* pb,
-                                                             char const** channel,
-                                                             char const** channel_group)
+void pbauto_heartbeat_transaction_ongoing(pubnub_t const* pb)
+{
+    PUBNUB_UNUSED(pb);
+}
+
+void pbauto_heartbeat_start_timer(pubnub_t const* pb)
+{
+    PUBNUB_UNUSED(pb);
+}
+
+void pbauto_heartbeat_free_channelInfo(pubnub_t* pb)
+{
+    PUBNUB_UNUSED(pb);
+}
+
+enum pubnub_res pbauto_heartbeat_prepare_channels_and_ch_groups(pubnub_t* pb,
+                                                                char const** channel,
+                                                                char const** channel_group)
 {
     PUBNUB_UNUSED(pb);
     return PNR_OK;
