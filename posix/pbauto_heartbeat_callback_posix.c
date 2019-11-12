@@ -586,16 +586,16 @@ static void release_thumper(unsigned thumper_index)
     }
 }
 
-/** If it is a thumper pubnub context, it is excepted from some usual procedures. */
-static bool is_excepted(pubnub_t const* pb, unsigned thumper_index)
+/** If it is a thumper pubnub context, it is exempted from some usual procedures. */
+static bool is_exempted(pubnub_t const* pb, unsigned thumper_index)
 {
-    pubnub_t const* pb_excepted;
+    pubnub_t const* pb_exempted;
 
     pthread_mutex_lock(&m_watcher.mutw);
-    pb_excepted = m_watcher.heartbeat_data[thumper_index].heartbeat_pb;
+    pb_exempted = m_watcher.heartbeat_data[thumper_index].heartbeat_pb;
     pthread_mutex_unlock(&m_watcher.mutw);
    
-    return (pb == pb_excepted);
+    return (pb == pb_exempted);
 }
 
 
@@ -604,7 +604,7 @@ void pubnub_disable_auto_heartbeat(pubnub_t* pb)
     PUBNUB_ASSERT(pb_valid_ctx_ptr(pb));
     
     pubnub_mutex_lock(pb->monitor);
-    if (is_excepted(pb, pb->thumperIndex)) {
+    if (is_exempted(pb, pb->thumperIndex)) {
         pubnub_mutex_unlock(pb->monitor);
         return;
     }
@@ -716,7 +716,7 @@ void pbauto_heartbeat_start_timer(pubnub_t const* pb)
     if (pb->thumperIndex != UNASSIGNED) {
         switch (pb->trans) {
         case PBTT_HEARTBEAT :
-            if (is_excepted(pb, pb->thumperIndex)) {
+            if (is_exempted(pb, pb->thumperIndex)) {
                 break;
             }
             /*FALLTHRU*/
@@ -787,7 +787,7 @@ void pbauto_heartbeat_transaction_ongoing(pubnub_t const* pb)
     if (pb->thumperIndex != UNASSIGNED) {
         switch (pb->trans) {
         case PBTT_HEARTBEAT :
-            if (is_excepted(pb, pb->thumperIndex)) {
+            if (is_exempted(pb, pb->thumperIndex)) {
                 break;
             }
             /*FALLTHRU*/
