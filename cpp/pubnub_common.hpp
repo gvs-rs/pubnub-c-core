@@ -40,6 +40,7 @@ extern "C" {
 #if PUBNUB_USE_ACTIONS_API
 #include "core/pubnub_actions_api.h"
 #endif
+#include "core/pubnub_auto_heartbeat.h"
 #if PUBNUB_USE_EXTERN_C
 }
 #endif
@@ -1335,13 +1336,13 @@ public:
 #if PUBNUB_USE_ACTIONS_API
     /// Starts a transaction that adds new type of message called action as a support for
     /// user reactions on a published messages.
-    /// @see pubnub_add_action
-    futres add_action(std::string const& channel,
-                      std::string const& message_timetoken,
-                      enum pubnub_action_type actype,
-                      std::string const& value)
+    /// @see pubnub_add_message_action
+    futres add_message_action(std::string const& channel,
+                              std::string const& message_timetoken,
+                              enum pubnub_action_type actype,
+                              std::string const& value)
     {
-        return doit(pubnub_add_action(
+        return doit(pubnub_add_message_action(
                         d_pb, 
                         channel.c_str(), 
                         message_timetoken.c_str(), 
@@ -1358,21 +1359,21 @@ public:
     }
 
     /// Returns action timetoken if previous transaction had been add_action()
-    /// @see pubnub_get_action_timetoken()
-    std::string get_action_timetoken()
+    /// @see pubnub_get_message_action_timetoken()
+    std::string get_message_action_timetoken()
     {
-        pubnub_chamebl_t result = pubnub_get_action_timetoken(d_pb);
+        pubnub_chamebl_t result = pubnub_get_message_action_timetoken(d_pb);
         return std::string(result.ptr, result.size);
     }
 
     /// Initiates transaction that deletes(removes) previously added action on a
     /// published message.
-    /// @see pubnub_remove_action()
-    futres remove_action(std::string const& channel,
-                         std::string const& message_timetoken,
-                         std::string const& action_timetoken)
+    /// @see pubnub_remove_message_action()
+    futres remove_message_action(std::string const& channel,
+                                 std::string const& message_timetoken,
+                                 std::string const& action_timetoken)
     {
-        return doit(pubnub_remove_action(
+        return doit(pubnub_remove_message_action(
                         d_pb,
                         channel.c_str(),
                         pubnub_str_2_chamebl_t((char*)message_timetoken.c_str()),
@@ -1381,13 +1382,13 @@ public:
 
     /// Initiates transaction that returns all actions added on a given @p channel
     /// between @p start and @p end action timetoken.
-    /// @see pubnub_get_actions()
-    futres get_actions(std::string const& channel,
-                       std::string const& start,
-                       std::string const& end,
-                       size_t limit=0)
+    /// @see pubnub_get_message_actions()
+    futres get_message_actions(std::string const& channel,
+                               std::string const& start,
+                               std::string const& end,
+                               size_t limit=0)
     {
-        return doit(pubnub_get_actions(
+        return doit(pubnub_get_message_actions(
                         d_pb,
                         channel.c_str(),
                         (start.size() > 0) ? start.c_str() : NULL,
@@ -1395,21 +1396,21 @@ public:
                         limit));
     }
 
-    /// @see pubnub_get_actions_more()
-    futres get_actions_more()
+    /// @see pubnub_get_message_actions_more()
+    futres get_message_actions_more()
     {
-        return doit(pubnub_get_actions_more(d_pb));
+        return doit(pubnub_get_message_actions_more(d_pb));
     }
 
     /// Initiates transaction that returns all actions added on a given @p channel
     /// between @p start and @p end message timetoken.
-    /// @see pubnub_history_with_actions()
-    futres  history_with_actions(std::string const& channel,
-                                 std::string const& start,
-                                 std::string const& end,
-                                 size_t limit=0)
+    /// @see pubnub_history_with_message_actions()
+    futres history_with_message_actions(std::string const& channel,
+                                        std::string const& start,
+                                        std::string const& end,
+                                        size_t limit=0)
     {
-        return doit(pubnub_history_with_actions(
+        return doit(pubnub_history_with_message_actions(
                         d_pb,
                         channel.c_str(),
                         (start.size() > 0) ? start.c_str() : NULL,
@@ -1417,12 +1418,52 @@ public:
                         limit));
     }
 
-    /// @see pubnub_history_with_actions_more()
-    futres history_with_actions_more()
+    /// @see pubnub_history_with_message_actions_more()
+    futres history_with_message_actions_more()
     {
-        return doit(pubnub_history_with_actions_more(d_pb));
+        return doit(pubnub_history_with_message_actions_more(d_pb));
     }
 #endif /* PUBNUB_USE_ACTIONS_API */
+
+#if PUBNUB_USE_AUTO_HEARTBEAT
+    /// Enables keeping presence on subscribed channels and channel groups
+    /// @see pubnub_enable_auto_heartbeat()
+    int enable_auto_heartbeat(size_t period_sec)
+    {
+        return pubnub_enable_auto_heartbeat(d_pb, period_sec);
+    }
+
+    /// Sets(changes) heartbeat period for keeping presence on subscribed channels
+    /// and channel groups.
+    /// @see pubnub_set_heartbeat_period()
+    int set_heartbeat_period(size_t period_sec)
+    {
+        return pubnub_set_heartbeat_period(d_pb, period_sec);
+    }
+
+    /// Disables keeping presence on subscribed channels and channel groups
+    /// @see pubnub_disable_auto_heartbeat()
+    void disable_auto_heartbeat()
+    {
+        pubnub_disable_auto_heartbeat(d_pb);
+    }
+
+    /// Returns whether(, or not) auto heartbeat on subscribed channels and channel
+    /// groups is enabled
+    /// @see pubnub_is_auto_heartbeat_enabled()
+    bool is_auto_heartbeat_enabled()
+    {
+        return pubnub_is_auto_heartbeat_enabled(d_pb);
+    }
+
+    /// Releases all allocated heartbeat thumpers.
+    /// Done on any object of the class, once, suffices.
+    /// @see pubnub_heartbeat_free_thumpers()
+    void heartbeat_free_thumpers()
+    {
+        pubnub_heartbeat_free_thumpers();
+    }
+#endif /* PUBNUB_USE_AUTO_HEARTBEAT */
     
     /// Return the HTTP code (result) of the last transaction.
     /// @see pubnub_last_http_code
