@@ -38,10 +38,10 @@ struct HeartbeatWatcherData {
     /** Number of active thumper timers */
     unsigned active_timers pubnub_guarded_by(timerlock);
     bool stop_heartbeat_watcher_thread pubnub_guarded_by(stoplock);
-    pthread_mutex_t mutw;
-    pthread_mutex_t timerlock;
-    pthread_mutex_t stoplock;
-    pthread_t       thread_id;
+    pubnub_mutex_t mutw;
+    pubnub_mutex_t timerlock;
+    pubnub_mutex_t stoplock;
+    pthread_t      thread_id;
 };
 
 
@@ -55,15 +55,15 @@ static void start_heartbeat_timer(unsigned thumper_index)
     PUBNUB_ASSERT_OPT(thumper_index < PUBNUB_MAX_HEARTBEAT_THUMPERS);
     
     PUBNUB_LOG_TRACE("--->start_heartbeat_timer(%u).\n", thumper_index);
-    pthread_mutex_lock(&m_watcher.mutw);
+    pubnub_mutex_lock(m_watcher.mutw);
     period_sec = m_watcher.heartbeat_data[thumper_index].period_sec;
-    pthread_mutex_unlock(&m_watcher.mutw);
+    pubnub_mutex_unlock(m_watcher.mutw);
     
-    pthread_mutex_lock(&m_watcher.timerlock);
+    pubnub_mutex_lock(m_watcher.timerlock);
     PUBNUB_ASSERT_OPT(m_watcher.active_timers < PUBNUB_MAX_HEARTBEAT_THUMPERS);
     m_watcher.heartbeat_timers[thumper_index] = period_sec * UNIT_IN_MILLI;
     m_watcher.timer_index_array[m_watcher.active_timers++] = thumper_index;
-    pthread_mutex_unlock(&m_watcher.timerlock);
+    pubnub_mutex_unlock(m_watcher.timerlock);
 }
 
 
@@ -179,9 +179,9 @@ static void auto_heartbeat_callback(pubnub_t*         heartbeat_pb,
     }
     else {
         pubnub_t* pb;
-        pthread_mutex_lock(&m_watcher.mutw);
+        pubnub_mutex_lock(m_watcher.mutw);
         pb = m_watcher.heartbeat_data[thumper_index].pb;
-        pthread_mutex_unlock(&m_watcher.mutw);
+        pubnub_mutex_unlock(m_watcher.mutw);
 
         if (result != PNR_CANCELLED) {
             PUBNUB_LOG_WARNING("punbub_heartbeat(heartbeat_pb=%p) failed with code: %d('%s') - "
@@ -254,10 +254,10 @@ static void handle_heartbeat_timers(int elapsed_ms)
             /* Taking out one that has expired */
             take_the_timer_out(indexes, i, &active_timers);
 
-            pthread_mutex_lock(&m_watcher.mutw);
+            pubnub_mutex_lock(m_watcher.mutw);
             pb = thumper->pb;
             heartbeat_pb = thumper->heartbeat_pb;
-            pthread_mutex_unlock(&m_watcher.mutw);
+            pubnub_mutex_unlock(m_watcher.mutw);
 
             if (NULL == heartbeat_pb) {
                 heartbeat_pb = init_new_thumper_pb(pb, thumper_index);
@@ -266,9 +266,9 @@ static void handle_heartbeat_timers(int elapsed_ms)
                 }
                 pubnub_register_callback(heartbeat_pb, auto_heartbeat_callback, NULL);
 
-                pthread_mutex_lock(&m_watcher.mutw);
+                pubnub_mutex_lock(m_watcher.mutw);
                 thumper->heartbeat_pb = heartbeat_pb;
-                pthread_mutex_unlock(&m_watcher.mutw);
+                pubnub_mutex_unlock(m_watcher.mutw);
             }
             /* Heartbeat thump */
             heartbeat_thump(pb, heartbeat_pb);
@@ -293,9 +293,9 @@ static void* heartbeat_watcher_thread(void* arg)
         int elapsed;
         bool stop_thread;
         
-        pthread_mutex_lock(&m_watcher.stoplock);
+        pubnub_mutex_lock(m_watcher.stoplock);
         stop_thread = m_watcher.stop_heartbeat_watcher_thread;
-        pthread_mutex_unlock(&m_watcher.stoplock);
+        pubnub_mutex_unlock(m_watcher.stoplock);
         if (stop_thread) {
             break;
         }
@@ -305,9 +305,9 @@ static void* heartbeat_watcher_thread(void* arg)
 
         elapsed = pbtimespec_elapsed_ms(prev_timspec, timspec);
         if (elapsed > 0) {
-            pthread_mutex_lock(&m_watcher.timerlock);
+            pubnub_mutex_lock(m_watcher.timerlock);
             handle_heartbeat_timers(elapsed);
-            pthread_mutex_unlock(&m_watcher.timerlock);
+            pubnub_mutex_unlock(m_watcher.timerlock);
             prev_timspec = timspec;
         }
     }
@@ -405,7 +405,7 @@ static int auto_heartbeat_init(void)
             "auto_heartbeat_init() - Failed to initialize mutex, error code: %d\n",
             rslt);
         pthread_mutexattr_destroy(&attr);
-        pthread_mutex_destroy(&m_watcher.stoplock);
+        pubnub_mutex_destroy(m_watcher.stoplock);
         return -1;
     }
     rslt = pthread_mutex_init(&m_watcher.timerlock, &attr);
@@ -415,8 +415,8 @@ static int auto_heartbeat_init(void)
             "error code: %d\n",
             rslt);
         pthread_mutexattr_destroy(&attr);
-        pthread_mutex_destroy(&m_watcher.mutw);
-        pthread_mutex_destroy(&m_watcher.stoplock);
+        pubnub_mutex_destroy(m_watcher.mutw);
+        pubnub_mutex_destroy(m_watcher.stoplock);
         return -1;
     }
     m_watcher.stop_heartbeat_watcher_thread = false;
@@ -427,9 +427,9 @@ static int auto_heartbeat_init(void)
             "error code: %d\n",
             rslt);
         pthread_mutexattr_destroy(&attr);
-        pthread_mutex_destroy(&m_watcher.mutw);
-        pthread_mutex_destroy(&m_watcher.timerlock);
-        pthread_mutex_destroy(&m_watcher.stoplock);
+        pubnub_mutex_destroy(m_watcher.mutw);
+        pubnub_mutex_destroy(m_watcher.timerlock);
+        pubnub_mutex_destroy(m_watcher.stoplock);
         return -1;
     }
 
@@ -453,7 +453,7 @@ static int form_heartbeat_thumper(pubnub_t* pb)
         s_began = true;
     }
     
-    pthread_mutex_lock(&m_watcher.mutw);
+    pubnub_mutex_lock(m_watcher.mutw);
     if (m_watcher.thumpers_in_use >= PUBNUB_MAX_HEARTBEAT_THUMPERS) {
         PUBNUB_LOG_WARNING("form_heartbeat_thumper(pb=%p) - No more heartbeat thumpers left: "
                            "PUBNUB_MAX_HEARTBEAT_THUMPERS = %d\n"
@@ -461,7 +461,7 @@ static int form_heartbeat_thumper(pubnub_t* pb)
                            pb,
                            PUBNUB_MAX_HEARTBEAT_THUMPERS,
                            m_watcher.thumpers_in_use);
-        pthread_mutex_unlock(&m_watcher.mutw);
+        pubnub_mutex_unlock(m_watcher.mutw);
 
         return -1;
     }
@@ -472,7 +472,7 @@ static int form_heartbeat_thumper(pubnub_t* pb)
             if (NULL == heartbeat_pb) {
                 heartbeat_pb = init_new_thumper_pb(pb, i);
                 if (NULL == heartbeat_pb) {
-                    pthread_mutex_unlock(&m_watcher.mutw);
+                    pubnub_mutex_unlock(m_watcher.mutw);
                     return -1;
                 }
                 pubnub_register_callback(heartbeat_pb, auto_heartbeat_callback, NULL);
@@ -485,7 +485,7 @@ static int form_heartbeat_thumper(pubnub_t* pb)
             break;
         }
     }
-    pthread_mutex_unlock(&m_watcher.mutw);
+    pubnub_mutex_unlock(m_watcher.mutw);
 
     return 0;
 }
@@ -504,11 +504,11 @@ int pubnub_set_heartbeat_period(pubnub_t* pb, size_t period_sec)
                          pb);
         return -1;
     }
-    pthread_mutex_lock(&m_watcher.mutw);
+    pubnub_mutex_lock(m_watcher.mutw);
     m_watcher.heartbeat_data[pb->thumperIndex].period_sec =
         period_sec < PUBNUB_MIN_HEARTBEAT_PERIOD ? PUBNUB_MIN_HEARTBEAT_PERIOD : period_sec;
     pubnub_mutex_unlock(pb->monitor);
-    pthread_mutex_unlock(&m_watcher.mutw);
+    pubnub_mutex_unlock(m_watcher.mutw);
 
     return 0;
 }
@@ -540,7 +540,7 @@ static void auto_heartbeat_stop_timer(unsigned thumper_index)
 
     PUBNUB_ASSERT_OPT(thumper_index < PUBNUB_MAX_HEARTBEAT_THUMPERS);
 
-    pthread_mutex_lock(&m_watcher.timerlock);
+    pubnub_mutex_lock(m_watcher.timerlock);
     active_timers = m_watcher.active_timers;
     for (i = 0, indexes = m_watcher.timer_index_array; i < active_timers; i++) {
         if (indexes[i] == thumper_index) {
@@ -550,7 +550,7 @@ static void auto_heartbeat_stop_timer(unsigned thumper_index)
             break;
         }
     }
-    pthread_mutex_unlock(&m_watcher.timerlock);
+    pubnub_mutex_unlock(m_watcher.timerlock);
 }
 
 
@@ -575,12 +575,12 @@ static void release_thumper(unsigned thumper_index)
         struct pubnub_heartbeat_data* thumper;
         pubnub_t* heartbeat_pb;
         
-        pthread_mutex_lock(&m_watcher.mutw);
+        pubnub_mutex_lock(m_watcher.mutw);
         thumper = &m_watcher.heartbeat_data[thumper_index];
         heartbeat_pb = thumper->heartbeat_pb;
         thumper->pb = NULL;
         --m_watcher.thumpers_in_use;
-        pthread_mutex_unlock(&m_watcher.mutw);
+        pubnub_mutex_unlock(m_watcher.mutw);
         
         stop_heartbeat(heartbeat_pb, thumper_index);
     }
@@ -591,9 +591,9 @@ static bool is_exempted(pubnub_t const* pb, unsigned thumper_index)
 {
     pubnub_t const* pb_exempted;
 
-    pthread_mutex_lock(&m_watcher.mutw);
+    pubnub_mutex_lock(m_watcher.mutw);
     pb_exempted = m_watcher.heartbeat_data[thumper_index].heartbeat_pb;
-    pthread_mutex_unlock(&m_watcher.mutw);
+    pubnub_mutex_unlock(m_watcher.mutw);
    
     return (pb == pb_exempted);
 }
@@ -740,9 +740,9 @@ void pubnub_heartbeat_free_thumpers(void)
     for (i = 0; i < PUBNUB_MAX_HEARTBEAT_THUMPERS; i++) {
         pubnub_t* heartbeat_pb;
         
-        pthread_mutex_lock(&m_watcher.mutw);
+        pubnub_mutex_lock(m_watcher.mutw);
         heartbeat_pb = heartbeat_data[i].heartbeat_pb;
-        pthread_mutex_unlock(&m_watcher.mutw);
+        pubnub_mutex_unlock(m_watcher.mutw);
         
         if (heartbeat_pb != NULL) {
             if (pubnub_free_with_timeout(heartbeat_pb, 1000) != 0) {
@@ -757,9 +757,9 @@ void pubnub_heartbeat_free_thumpers(void)
                                  "%u. thumper(heartbeat_pb=%p) freed.\n",
                                  i+1,
                                  heartbeat_pb);
-                pthread_mutex_lock(&m_watcher.mutw);
+                pubnub_mutex_lock(m_watcher.mutw);
                 heartbeat_data[i].heartbeat_pb = NULL;
-                pthread_mutex_unlock(&m_watcher.mutw);
+                pubnub_mutex_unlock(m_watcher.mutw);
             }
         }
     }
@@ -772,9 +772,9 @@ static void stop_auto_heartbeat(unsigned thumper_index)
 {
     pubnub_t* heartbeat_pb;
 
-    pthread_mutex_lock(&m_watcher.mutw);
+    pubnub_mutex_lock(m_watcher.mutw);
     heartbeat_pb = m_watcher.heartbeat_data[thumper_index].heartbeat_pb;
-    pthread_mutex_unlock(&m_watcher.mutw);
+    pubnub_mutex_unlock(m_watcher.mutw);
 
     stop_heartbeat(heartbeat_pb, thumper_index);
 }
@@ -804,7 +804,7 @@ void pbauto_heartbeat_transaction_ongoing(pubnub_t const* pb)
 
 void pbauto_heartbeat_stop(void)
 {
-    pthread_mutex_lock(&m_watcher.stoplock);
+    pubnub_mutex_lock(m_watcher.stoplock);
     m_watcher.stop_heartbeat_watcher_thread = true;
-    pthread_mutex_unlock(&m_watcher.stoplock);
+    pubnub_mutex_unlock(m_watcher.stoplock);
 }

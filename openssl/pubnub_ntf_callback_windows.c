@@ -1,8 +1,8 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
 #include "core/pubnub_ntf_callback.h"
+#include "windows/pbtimespec_elapsed_ms.h"
 
 #include <winsock2.h>
-#include <windows.h>
 #include <process.h>
 
 #include "pubnub_internal.h"
@@ -47,18 +47,6 @@ struct SocketWatcherData {
 static struct SocketWatcherData m_watcher;
 
 
-static int elapsed_ms(FILETIME prev_timspec, FILETIME timspec)
-{
-    ULARGE_INTEGER prev;
-    ULARGE_INTEGER current;
-    prev.LowPart     = prev_timspec.dwLowDateTime;
-    prev.HighPart    = prev_timspec.dwHighDateTime;
-    current.LowPart  = timspec.dwLowDateTime;
-    current.HighPart = timspec.dwHighDateTime;
-    return (int)((current.QuadPart - prev.QuadPart) / MSEC_IN_FILETIME_INTERVALS);
-}
-
-
 int pbntf_watch_in_events(pubnub_t* pbp)
 {
     return pbpal_ntf_watch_in_events(m_watcher.poll, pbp);
@@ -91,7 +79,7 @@ void socket_watcher_thread(void* arg)
             FILETIME current_time;
             int      elapsed;
             GetSystemTimeAsFileTime(&current_time);
-            elapsed = elapsed_ms(prev_time, current_time);
+            elapsed = pbtimespec_elapsed_ms(prev_time, current_time);
             if (elapsed > 0) {
                 EnterCriticalSection(&m_watcher.timerlock);
                 pbntf_handle_timer_list(elapsed, &m_watcher.timer_head);
