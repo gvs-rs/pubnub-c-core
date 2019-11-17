@@ -1,8 +1,7 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
 #include "core/pubnub_ntf_callback.h"
-#include "windows/pbtimespec_elapsed_ms.h"
+#include "pbtimespec_elapsed_ms.h"
 
-#include <winsock2.h>
 #include <process.h>
 
 #include "pubnub_internal.h"
