@@ -2,10 +2,8 @@
 #if !defined _WIN32
 #include "posix/monotonic_clock_get_time.h"
 #include "posix/pbtimespec_elapsed_ms.h"
-#include <pthread.h>
 #else
 #include "windows/pbtimespec_elapsed_ms.h"
-#include <process.h>
 #endif
 
 #include "pubnub_internal.h"
@@ -24,45 +22,8 @@
 #include <string.h>
 
 
-#define PUBNUB_MIN_HEARTBEAT_PERIOD                                            \
+#define PUBNUB_MIN_HEARTBEAT_PERIOD                  \
     (PUBNUB_MIN_TRANSACTION_TIMER / UNIT_IN_MILLI)
-
-struct pubnub_heartbeat_data {
-    pubnub_t* pb;
-    pubnub_t* heartbeat_pb;
-    size_t    period_sec;
-};
-
-#if defined      _WIN32
-typedef DWORD    pubnub_thread_t;
-typedef FILETIME pubnub_timespec_t;
-typedef void     pubnub_watcher_t;
-#define thread_handle_field() HANDLE thread_handle;
-#define UNIT_IN_MILLI 1000
-#else
-typedef pthread_t       pubnub_thread_t;
-typedef struct timespec pubnub_timespec_t;
-typedef void*           pubnub_watcher_t;
-#define thread_handle_field()
-#endif
-
-struct HeartbeatWatcherData {
-    struct pubnub_heartbeat_data
-             heartbeat_data[PUBNUB_MAX_HEARTBEAT_THUMPERS] pubnub_guarded_by(mutw);
-    unsigned thumpers_in_use pubnub_guarded_by(mutw);
-    /** Times left for each of the thumper timers in progress */
-    size_t heartbeat_timers[PUBNUB_MAX_HEARTBEAT_THUMPERS] pubnub_guarded_by(timerlock);
-    /** Array of thumper indexes whos auto heartbeat timers are active and running */
-    unsigned timer_index_array[PUBNUB_MAX_HEARTBEAT_THUMPERS] pubnub_guarded_by(timerlock);
-    /** Number of active thumper timers */
-    unsigned active_timers pubnub_guarded_by(timerlock);
-    bool stop_heartbeat_watcher_thread pubnub_guarded_by(stoplock);
-    pubnub_mutex_t                     mutw;
-    pubnub_mutex_t                     timerlock;
-    pubnub_mutex_t                     stoplock;
-    pubnub_thread_t                    thread_id;
-    thread_handle_field()
-};
 
 
 static struct HeartbeatWatcherData m_watcher;
@@ -308,7 +269,7 @@ static void handle_heartbeat_timers(int elapsed_ms)
 }
 
 
-static pubnub_watcher_t heartbeat_watcher_thread(void* arg)
+pubnub_watcher_t pbauto_heartbeat_watcher_thread(void* arg)
 {
     pubnub_timespec_t prev_timspec;
 #if !defined(_WIN32)
@@ -355,149 +316,6 @@ static pubnub_watcher_t heartbeat_watcher_thread(void* arg)
 }
 
 
-static int auto_heartbeat_init(void)
-{
-    InitializeCriticalSection(&m_watcher.stoplock);
-    InitializeCriticalSection(&m_watcher.mutw);
-    InitializeCriticalSection(&m_watcher.timerlock);
-
-    m_watcher.stop_heartbeat_watcher_thread = false;
-
-    m_watcher.thread_handle = (HANDLE)_beginthread(
-        heartbeat_watcher_thread, PUBNUB_CALLBACK_THREAD_STACK_SIZE_KB * 1024, NULL);
-    if ((HANDLE)-1L == m_watcher.thread_handle) {
-        PUBNUB_LOG_ERROR("Failed to start the polling thread, error code: %d\n",
-                         errno);
-        DeleteCriticalSection(&m_watcher.mutw);
-        DeleteCriticalSection(&m_watcher.timerlock);
-        DeleteCriticalSection(&m_watcher.stoplock);
-        return -1;
-    }
-    m_watcher.thread_id = GetThreadId(m_watcher.thread_handle);
-
-    return 0;
-}
-
-/*
-static int create_heartbeat_watcher_thread(void)
-{
-    int rslt;
-
-#if defined(PUBNUB_CALLBACK_THREAD_STACK_SIZE_KB)                              \
-    && (PUBNUB_CALLBACK_THREAD_STACK_SIZE_KB > 0)
-    {
-        pthread_attr_t thread_attr;
-
-        rslt = pthread_attr_init(&thread_attr);
-        if (rslt != 0) {
-            PUBNUB_LOG_ERROR(
-                "create_heartbeat_watcher_thread() - "
-                "Failed to initialize thread attributes, error code: %d\n",
-                rslt);
-            return -1;
-        }
-        rslt = pthread_attr_setstacksize(
-            &thread_attr, PUBNUB_CALLBACK_THREAD_STACK_SIZE_KB * 1024);
-        if (rslt != 0) {
-            PUBNUB_LOG_ERROR(
-                "create_heartbeat_watcher_thread() - "
-                "Failed to set thread stack size to %d kb, error code: %d\n",
-                PUBNUB_CALLBACK_THREAD_STACK_SIZE_KB,
-                rslt);
-            pthread_attr_destroy(&thread_attr);
-            return -1;
-        }
-        rslt = pthread_create(
-            &m_watcher.thread_id, &thread_attr, heartbeat_watcher_thread, NULL);
-        if (rslt != 0) {
-            PUBNUB_LOG_ERROR("create_heartbeat_watcher_thread() - "
-                             "Failed to create the auto heartbeat watcher "
-                             "thread, error code: %d\n",
-                             rslt);
-            pthread_attr_destroy(&thread_attr);
-            return -1;
-        }
-    }
-#else
-    rslt = pthread_create(&m_watcher.thread_id, NULL, heartbeat_watcher_thread,
-NULL); if (rslt != 0) { PUBNUB_LOG_ERROR("create_heartbeat_watcher_thread() - "
-                         "Failed to create the auto heartbeat watcher thread, "
-                         "error code: %d\n",
-                         rslt);
-        return -1;
-    }
-#endif
-
-    return 0;
-}
-
-
-static int _init(void)
-{
-    int                 rslt;
-    pthread_mutexattr_t attr;
-
-    rslt = pthread_mutexattr_init(&attr);
-    if (rslt != 0) {
-        PUBNUB_LOG_ERROR("auto_heartbeat_init() - Failed to initialize mutex "
-                         "attributes, error code: %d\n",
-                         rslt);
-        return -1;
-    }
-    rslt = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    if (rslt != 0) {
-        PUBNUB_LOG_ERROR("auto_heartbeat_init() - Failed to set mutex "
-                         "attribute type, error code: %d\n",
-                         rslt);
-        pthread_mutexattr_destroy(&attr);
-        return -1;
-    }
-    rslt = pthread_mutex_init(&m_watcher.stoplock, &attr);
-    if (rslt != 0) {
-        PUBNUB_LOG_ERROR("auto_heartbeat_init() - Failed to initialize "
-                         "'stoplock' mutex, error code: %d\n",
-                         rslt);
-        pthread_mutexattr_destroy(&attr);
-        return -1;
-    }
-    rslt = pthread_mutex_init(&m_watcher.mutw, &attr);
-    if (rslt != 0) {
-        PUBNUB_LOG_ERROR("auto_heartbeat_init() - Failed to initialize mutex, "
-                         "error code: %d\n",
-                         rslt);
-        pthread_mutexattr_destroy(&attr);
-        pubnub_mutex_destroy(m_watcher.stoplock);
-        return -1;
-    }
-    rslt = pthread_mutex_init(&m_watcher.timerlock, &attr);
-    if (rslt != 0) {
-        PUBNUB_LOG_ERROR("auto_heartbeat_init() - Failed to initialize mutex "
-                         "for heartbeat timers, "
-                         "error code: %d\n",
-                         rslt);
-        pthread_mutexattr_destroy(&attr);
-        pubnub_mutex_destroy(m_watcher.mutw);
-        pubnub_mutex_destroy(m_watcher.stoplock);
-        return -1;
-    }
-    m_watcher.stop_heartbeat_watcher_thread = false;
-    rslt                                    = create_heartbeat_watcher_thread();
-    if (rslt != 0) {
-        PUBNUB_LOG_ERROR(
-            "auto_heartbeat_init() - create_heartbeat_watcher_thread() failed, "
-            "error code: %d\n",
-            rslt);
-        pthread_mutexattr_destroy(&attr);
-        pubnub_mutex_destroy(m_watcher.mutw);
-        pubnub_mutex_destroy(m_watcher.timerlock);
-        pubnub_mutex_destroy(m_watcher.stoplock);
-        return -1;
-    }
-
-    return 0;
-}
-*/
-
 /** Initializes auto heartbeat thumper for @p pb context and if its called for
    the first time starts auto heartbeat watcher thread.
   */
@@ -510,7 +328,7 @@ static int form_heartbeat_thumper(pubnub_t* pb)
     PUBNUB_ASSERT_OPT(pb_valid_ctx_ptr(pb));
 
     if (!s_began) {
-        auto_heartbeat_init();
+        pbauto_heartbeat_init(&m_watcher);
         s_began = true;
     }
 
@@ -717,7 +535,7 @@ void pbauto_heartbeat_read_channelInfo(pubnub_t const* pb,
     *channel_group = pb->channelInfo.channel_group;
 }
 
-
+#if defined _WIN32
 static char* strndup(char const* str, size_t max_size)
 {
     size_t len = pb_strnlen_s(str, PUBNUB_MAX_OBJECT_LENGTH);
@@ -734,6 +552,7 @@ static char* strndup(char const* str, size_t max_size)
 
     return rslt;
 }
+#endif
 
 static enum pubnub_res write_auto_heartbeat_channelInfo(pubnub_t*   pb,
                                                         char const* channel,

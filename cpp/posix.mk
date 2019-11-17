@@ -132,7 +132,7 @@ CALLBACK_INTF_SOURCEFILES += ../lib/pubnub_parse_ipv6_addr.c
 endif
 
 ifeq ($(USE_AUTO_HEARTBEAT), 1)
-CALLBACK_INTF_SOURCEFILES += ../posix/pbauto_heartbeat_callback_posix.c
+CALLBACK_INTF_SOURCEFILES += ../core/pbauto_heartbeat_callback.c ../posix/pbauto_heartbeat_init_posix.c
 endif
 
 CFLAGS_CALLBACK = -D PUBNUB_USE_IPV6=$(USE_IPV6) -D PUBNUB_SET_DNS_SERVERS=$(USE_DNS_SERVERS)
