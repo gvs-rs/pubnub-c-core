@@ -1,11 +1,8 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
+#include "pubnub_internal.h"
+
 #include "core/pubnub_ntf_callback.h"
 #include "windows/pbtimespec_elapsed_ms.h"
-
-#include <winsock2.h>
-#include <process.h>
-
-#include "pubnub_internal.h"
 #include "core/pubnub_assert.h"
 #include "core/pubnub_log.h"
 #include "core/pubnub_timer_list.h"
@@ -14,6 +11,8 @@
 #include "lib/sockets/pbpal_ntf_callback_poller_poll.h"
 #include "core/pbpal_ntf_callback_queue.h"
 #include "core/pbpal_ntf_callback_handle_timer_list.h"
+
+#include <process.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -24,17 +23,12 @@
 #endif
 
 
-/** The number of Windows FILETIME intervals in a millisecond. Windows
-    FILETIME interval is 100 ns.  In practice, the actual resolution
-    may be (much) different, but, nominally it's 100ns.
-*/
-#define MSEC_IN_FILETIME_INTERVALS (10 * 1000)
-
-
 struct SocketWatcherData {
     _Guarded_by_(mutw) struct pbpal_poll_data* poll;
+    _Guarded_by_(stoplock) bool stop_socket_watcher_thread;
     CRITICAL_SECTION mutw;
     CRITICAL_SECTION timerlock;
+    CRITICAL_SECTION stoplock;
     HANDLE           thread_handle;
     DWORD            thread_id;
 #if PUBNUB_TIMERS_API
@@ -117,6 +111,16 @@ int pbntf_init(void)
     m_watcher.thread_id = GetThreadId(m_watcher.thread_handle);
 
     return 0;
+}
+
+
+void pubnub_stop(void)
+{
+    pbauto_heartbeat_stop();
+
+    EnterCriticalSection(&m_watcher.stoplock);
+    m_watcher.stop_socket_watcher_thread = true;
+    LeaveCriticalSection(&m_watcher.stoplock);
 }
 
 

@@ -1,12 +1,12 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
+#include "pubnub_internal.h"
+
 #if !defined _WIN32
 #include "posix/monotonic_clock_get_time.h"
 #include "posix/pbtimespec_elapsed_ms.h"
 #else
 #include "windows/pbtimespec_elapsed_ms.h"
 #endif
-
-#include "pubnub_internal.h"
 #include "core/pubnub_alloc.h"
 #include "core/pubnub_ccore_limits.h"
 #include "core/pubnub_pubsubapi.h"

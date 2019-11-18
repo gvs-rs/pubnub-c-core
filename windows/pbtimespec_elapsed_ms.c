@@ -1,5 +1,5 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#include "windows/pbtimespec_elapsed_ms.h"
+#include "pbtimespec_elapsed_ms.h"
 
 /** The number of Windows FILETIME intervals in a millisecond. Windows
     FILETIME interval is 100 ns.  In practice, the actual resolution

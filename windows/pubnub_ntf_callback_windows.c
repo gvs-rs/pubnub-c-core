@@ -1,10 +1,8 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
+#include "pubnub_internal.h"
+
 #include "core/pubnub_ntf_callback.h"
 #include "pbtimespec_elapsed_ms.h"
-
-#include <process.h>
-
-#include "pubnub_internal.h"
 #include "core/pubnub_assert.h"
 #include "core/pubnub_log.h"
 #include "core/pubnub_timer_list.h"
@@ -13,6 +11,8 @@
 #include "lib/sockets/pbpal_ntf_callback_poller_poll.h"
 #include "core/pbpal_ntf_callback_queue.h"
 #include "core/pbpal_ntf_callback_handle_timer_list.h"
+
+#include <process.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -127,6 +127,8 @@ int pbntf_init(void)
 
 void pubnub_stop(void)
 {
+    pbauto_heartbeat_stop();
+
     EnterCriticalSection(&m_watcher.stoplock);
     m_watcher.stop_socket_watcher_thread = true;
     LeaveCriticalSection(&m_watcher.stoplock);

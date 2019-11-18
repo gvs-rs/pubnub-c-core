@@ -1,5 +1,6 @@
 /* -*- c-file-style:"stroustrup"; indent-tabs-mode: nil -*- */
-#include "core/pubnub_auto_heartbeat.h"
+#include "pubnub_internal.h"
+#include "core/pubnub_log.h"
 
 #include <process.h>
 
