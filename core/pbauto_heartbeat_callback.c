@@ -13,6 +13,7 @@
 #include "core/pubnub_coreapi.h"
 #include "core/pubnub_free_with_timeout.h"
 #include "lib/pb_strnlen_s.h"
+#include "core/pb_sleep_ms.h"
 #include "core/pubnub_assert.h"
 #include "core/pubnub_log.h"
 #include "core/pbpal.h"
@@ -290,14 +291,10 @@ pubnub_watcher_t pbauto_heartbeat_watcher_thread(void* arg)
             break;
         }
 
+        pb_sleep_ms(1);
 #if !defined(_WIN32)
-        {
-            struct timespec sleep_time = { 1, 0 };
-            nanosleep(&sleep_time, NULL);
-        }
         monotonic_clock_get_time(&timspec);
 #else
-        Sleep(1);
         GetSystemTimeAsFileTime(&timspec);
 #endif
 
@@ -540,15 +537,14 @@ static char* strndup(char const* str, size_t max_size)
 {
     size_t len = pb_strnlen_s(str, PUBNUB_MAX_OBJECT_LENGTH);
     char*  rslt;
-    if (len > max_size - 1) {
-        return NULL;
-    }
+    len = (len > max_size) ? max_size : len;
     /* Adding the space for NUL character */
     rslt = (char*)malloc((++len) * sizeof(char));
     if (NULL == rslt) {
         return NULL;
     }
     strncpy(rslt, str, len);
+    rslt[len - 1] = '\0';
 
     return rslt;
 }
@@ -562,7 +558,7 @@ static enum pubnub_res write_auto_heartbeat_channelInfo(pubnub_t*   pb,
 
     pbauto_heartbeat_free_channelInfo(pb);
     if (channel != NULL) {
-        pb->channelInfo.channel = strndup(channel, PUBNUB_MAX_OBJECT_LENGTH);
+        pb->channelInfo.channel = strndup(channel, PUBNUB_MAX_OBJECT_LENGTH - 1);
         if (NULL == pb->channelInfo.channel) {
             PUBNUB_LOG_ERROR(
                 "Error: write_auto_heartbeat_info(pb=%p) - "
@@ -575,7 +571,7 @@ static enum pubnub_res write_auto_heartbeat_channelInfo(pubnub_t*   pb,
     }
     if (channel_group != NULL) {
         pb->channelInfo.channel_group =
-            strndup(channel_group, PUBNUB_MAX_OBJECT_LENGTH);
+            strndup(channel_group, PUBNUB_MAX_OBJECT_LENGTH - 1);
         if (NULL == pb->channelInfo.channel_group) {
             PUBNUB_LOG_ERROR(
                 "Error: write_auto_heartbeat_info(pb=%p) - "
@@ -666,14 +662,7 @@ void pubnub_heartbeat_free_thumpers(void)
         }
     }
     /* Waits until the contexts are released from the processing queue */
-#if !defined(_WIN32)
-    {
-        struct timespec sleep_time = { 1, 0 };
-        nanosleep(&sleep_time, NULL);
-    }
-#else
-    Sleep(1);
-#endif
+    pb_sleep_ms(1000);
 }
 
 

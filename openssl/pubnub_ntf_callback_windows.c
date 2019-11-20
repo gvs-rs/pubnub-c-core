@@ -62,6 +62,14 @@ void socket_watcher_thread(void* arg)
 
     for (;;) {
         const DWORD ms = 100;
+        bool        stop_thread;
+
+        EnterCriticalSection(&m_watcher.stoplock);
+        stop_thread = m_watcher.stop_socket_watcher_thread;
+        LeaveCriticalSection(&m_watcher.stoplock);
+        if (stop_thread) {
+            break;
+        }
 
         pbpal_ntf_callback_process_queue(&m_watcher.queue);
 
@@ -88,9 +96,11 @@ void socket_watcher_thread(void* arg)
 
 int pbntf_init(void)
 {
+    InitializeCriticalSection(&m_watcher.stoplock);
     InitializeCriticalSection(&m_watcher.mutw);
     InitializeCriticalSection(&m_watcher.timerlock);
 
+    m_watcher.stop_socket_watcher_thread = false;
     m_watcher.poll = pbpal_ntf_callback_poller_init();
     if (NULL == m_watcher.poll) {
         return -1;
@@ -104,6 +114,7 @@ int pbntf_init(void)
                          errno);
         DeleteCriticalSection(&m_watcher.mutw);
         DeleteCriticalSection(&m_watcher.timerlock);
+        DeleteCriticalSection(&m_watcher.stoplock);
         pbpal_ntf_callback_queue_deinit(&m_watcher.queue);
         pbpal_ntf_callback_poller_deinit(&m_watcher.poll);
         return -1;

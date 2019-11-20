@@ -48,7 +48,7 @@ fntest_runner.exe: fntest\pubnub_fntest_runner.cpp $(SOURCEFILES) $(PROXY_INTF_S
 SOCKET_POLLER_C=..\lib\sockets\pbpal_ntf_callback_poller_poll.c
 SOCKET_POLLER_OBJ=pbpal_ntf_callback_poller_poll.obj
 
-CALLBACK_INTF_SOURCEFILES=..\windows\pubnub_ntf_callback_windows.c ..\windows\pubnub_get_native_socket.c ..\core\pubnub_timer_list.c ..\lib\sockets\pbpal_adns_sockets.c ..\lib\pubnub_dns_codec.c ..\core\pubnub_dns_servers.c ..\windows\pubnub_dns_system_servers.c ..\lib\pubnub_parse_ipv4_addr.c ..\lib\pubnub_parse_ipv6_addr.c $(SOCKET_POLLER_C) ..\core\pbpal_ntf_callback_queue.c ..\core\pbpal_ntf_callback_admin.c ..\core\pbpal_ntf_callback_handle_timer_list.c ..\core\pubnub_callback_subscribe_loop.c ..\core\pbauto_heartbeat_callback.c ..\windows\pbauto_heartbeat_init_windows.c
+CALLBACK_INTF_SOURCEFILES=..\windows\pubnub_ntf_callback_windows.c ..\windows\pubnub_get_native_socket.c ..\core\pubnub_timer_list.c ..\lib\sockets\pbpal_adns_sockets.c ..\lib\pubnub_dns_codec.c ..\core\pubnub_dns_servers.c ..\windows\pubnub_dns_system_servers.c ..\lib\pubnub_parse_ipv4_addr.c ..\lib\pubnub_parse_ipv6_addr.c $(SOCKET_POLLER_C) ..\core\pbpal_ntf_callback_queue.c ..\core\pbpal_ntf_callback_admin.c ..\core\pbpal_ntf_callback_handle_timer_list.c ..\core\pubnub_callback_subscribe_loop.c ..\core\pbauto_heartbeat_callback.c ..\windows\pbauto_heartbeat_init_windows.c ..\windows\pb_sleep_ms.c
 
 
 pubnub_callback_sample.exe: samples\pubnub_sample.cpp $(SOURCEFILES) $(PROXY_INTF_SOURCEFILES) $(CALLBACK_INTF_SOURCEFILES) pubnub_futres_windows.cpp
