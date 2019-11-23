@@ -277,7 +277,7 @@ TEST_DEF(wrong_api_usage)
     EXPECT_TRUE(pubnub::wait_for(futr_2, rel_time, result));
     EXPECT_RESULT(futr_2, result) == PNR_CANCELLED;
 
-    SENSE(pbp.subscribe("")).in(Td) == PNR_INVALID_CHANNEL;
+//    SENSE(pbp.subscribe("")).in(Td) == PNR_INVALID_CHANNEL;
 }
 TEST_ENDDEF
 
