@@ -509,11 +509,16 @@ static void release_thumper(unsigned thumper_index)
     }
 }
 
-/** If it is a thumper pubnub context, it is exempted from some usual procedures. */
+/** If it is a thumper pubnub context, or one that doesn't have thumper assigned, it is
+    exempted from auto heartbeat procedures.
+  */
 static bool is_exempted(pubnub_t const* pb, unsigned thumper_index)
 {
     pubnub_t const* pb_exempted;
 
+    if (UNASSIGNED == thumper_index) {
+        return true;
+    }
     pubnub_mutex_lock(m_watcher.mutw);
     pb_exempted = m_watcher.heartbeat_data[thumper_index].heartbeat_pb;
     pubnub_mutex_unlock(m_watcher.mutw);

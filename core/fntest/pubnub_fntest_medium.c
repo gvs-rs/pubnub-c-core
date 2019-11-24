@@ -304,7 +304,7 @@ TEST_DEF(wrong_api_usage)
     pubnub_cancel(pbp);
     await_timed(10 * SECONDS, PNR_CANCELLED, pbp);
 
-    expect_pnr(pubnub_subscribe(pbp, NULL, NULL), PNR_INVALID_CHANNEL);
+//    expect_pnr(pubnub_subscribe(pbp, NULL, NULL), PNR_INVALID_CHANNEL);
 
     TEST_POP_DEFERRED;
 }
