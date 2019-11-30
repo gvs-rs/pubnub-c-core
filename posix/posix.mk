@@ -104,8 +104,8 @@ pubnub_sync.a : $(SOURCEFILES) $(SYNC_INTF_SOURCEFILES)
 	$(CC) -c $(CFLAGS) $(INCLUDES) $(SOURCEFILES) $(SYNC_INTF_SOURCEFILES)
 	ar rcs pubnub_sync.a $(OBJFILES) $(SYNC_INTF_OBJFILES)
 
-CALLBACK_INTF_SOURCEFILES=pubnub_ntf_callback_posix.c pubnub_get_native_socket.c ../core/pubnub_timer_list.c ../lib/sockets/pbpal_ntf_callback_poller_poll.c ../lib/sockets/pbpal_adns_sockets.c ../lib/pubnub_dns_codec.c ../core/pbpal_ntf_callback_queue.c ../core/pbpal_ntf_callback_admin.c ../core/pbpal_ntf_callback_handle_timer_list.c  ../core/pubnub_callback_subscribe_loop.c ../posix/pb_sleep_ms.c
-CALLBACK_INTF_OBJFILES=pubnub_ntf_callback_posix.o pubnub_get_native_socket.o pubnub_timer_list.o pbpal_ntf_callback_poller_poll.o pbpal_adns_sockets.o pubnub_dns_codec.o pbpal_ntf_callback_queue.o pbpal_ntf_callback_admin.o pbpal_ntf_callback_handle_timer_list.o pubnub_callback_subscribe_loop.o pb_sleep_ms.o
+CALLBACK_INTF_SOURCEFILES=pubnub_ntf_callback_posix.c pubnub_get_native_socket.c ../core/pubnub_timer_list.c ../lib/sockets/pbpal_ntf_callback_poller_poll.c ../lib/sockets/pbpal_adns_sockets.c ../lib/pubnub_dns_codec.c ../core/pbpal_ntf_callback_queue.c ../core/pbpal_ntf_callback_admin.c ../core/pbpal_ntf_callback_handle_timer_list.c  ../core/pubnub_callback_subscribe_loop.c
+CALLBACK_INTF_OBJFILES=pubnub_ntf_callback_posix.o pubnub_get_native_socket.o pubnub_timer_list.o pbpal_ntf_callback_poller_poll.o pbpal_adns_sockets.o pubnub_dns_codec.o pbpal_ntf_callback_queue.o pbpal_ntf_callback_admin.o pbpal_ntf_callback_handle_timer_list.o pubnub_callback_subscribe_loop.o
 
 ifndef USE_DNS_SERVERS
 USE_DNS_SERVERS = 1
