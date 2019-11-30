@@ -12,7 +12,6 @@ USE_PROXY = 1
 
 !if $(USE_PROXY)
 PROXY_INTF_SOURCEFILES = ..\core\pubnub_proxy.c ..\core\pubnub_proxy_core.c ..\core\pbhttp_digest.c ..\core\pbntlm_core.c ..\core\pbntlm_packer_sspi.c ..\windows\pubnub_set_proxy_from_system_windows.c 
-PROXY_INTF_OBJFILES = pubnub_proxy.obj pubnub_proxy_core.obj pbhttp_digest.obj pbntlm_core.obj pbntlm_packer_sspi.obj pubnub_set_proxy_from_system_windows.obj 
 !endif
 
 CFLAGS = /EHsc /Zi /MP /TP /I .. /I . /I ..\core\c99 /I ..\windows /W3 /D PUBNUB_THREADSAFE /D HAVE_STRERROR_S /D PUBNUB_ONLY_PUBSUB_API=$(ONLY_PUBSUB_API) /D PUBNUB_PROXY_API=$(USE_PROXY)
@@ -46,7 +45,6 @@ fntest_runner.exe: fntest\pubnub_fntest_runner.cpp $(SOURCEFILES) $(PROXY_INTF_S
 # WSAPoll() has some weird differences to poll().  The names are the
 # same until the last `_`, then it's `poll` vs `select.
 SOCKET_POLLER_C=..\lib\sockets\pbpal_ntf_callback_poller_poll.c
-SOCKET_POLLER_OBJ=pbpal_ntf_callback_poller_poll.obj
 
 CALLBACK_INTF_SOURCEFILES=..\windows\pubnub_ntf_callback_windows.c ..\windows\pubnub_get_native_socket.c ..\core\pubnub_timer_list.c ..\lib\sockets\pbpal_adns_sockets.c ..\lib\pubnub_dns_codec.c ..\core\pubnub_dns_servers.c ..\windows\pubnub_dns_system_servers.c ..\lib\pubnub_parse_ipv4_addr.c ..\lib\pubnub_parse_ipv6_addr.c $(SOCKET_POLLER_C) ..\core\pbpal_ntf_callback_queue.c ..\core\pbpal_ntf_callback_admin.c ..\core\pbpal_ntf_callback_handle_timer_list.c ..\core\pubnub_callback_subscribe_loop.c
 

@@ -27,8 +27,8 @@ INCLUDES=-I .. -I . -I ..\core\c99
 
 all: pubnub_sync_sample.exe metadata.exe cancel_subscribe_sync_sample.exe pubnub_publish_via_post_sample.exe subscribe_publish_callback_sample.exe pubnub_callback_sample.exe pubnub_callback_subloop_sample.exe pubnub_fntest.exe pubnub_console_sync.exe pubnub_advanced_history_sample.exe pubnub_console_callback.exe subscribe_publish_from_callback.exe publish_callback_subloop_sample.exe publish_queue_callback_subloop.exe
 
-SYNC_INTF_SOURCEFILES= ..\core\pubnub_ntf_sync.c ..\core\pubnub_sync_subscribe_loop.c ..\core\srand_from_pubnub_time.c
-SYNC_INTF_OBJFILES=pubnub_ntf_sync.obj pubnub_sync_subscribe_loop.obj srand_from_pubnub_time.obj
+SYNC_INTF_SOURCEFILES= ..\core\pubnub_ntf_sync.c ..\core\pubnub_sync_subscribe_loop.c ..\core\srand_from_pubnub_time.c ..\core\pbauto_heartbeat_sync.c
+SYNC_INTF_OBJFILES=pubnub_ntf_sync.obj pubnub_sync_subscribe_loop.obj srand_from_pubnub_time.obj pbauto_heartbeat_sync.obj pbauto_heartbeat_sync.obj
 
 pubnub_sync.lib : $(SOURCEFILES) $(PROXY_INTF_SOURCEFILES) $(SYNC_INTF_SOURCEFILES)
 	$(CC) -c $(CFLAGS) $(INCLUDES) $(SOURCEFILES) $(PROXY_INTF_SOURCEFILES) $(SYNC_INTF_SOURCEFILES)
@@ -43,8 +43,8 @@ pubnub_sync.lib : $(SOURCEFILES) $(PROXY_INTF_SOURCEFILES) $(SYNC_INTF_SOURCEFIL
 SOCKET_POLLER_C=..\lib\sockets\pbpal_ntf_callback_poller_poll.c
 SOCKET_POLLER_OBJ=pbpal_ntf_callback_poller_poll.obj
 
-CALLBACK_INTF_SOURCEFILES=pubnub_ntf_callback_windows.c pubnub_get_native_socket.c ..\core\pubnub_timer_list.c ..\lib\sockets\pbpal_adns_sockets.c ..\lib\pubnub_dns_codec.c ..\core\pubnub_dns_servers.c ..\windows\pubnub_dns_system_servers.c ..\lib\pubnub_parse_ipv4_addr.c ..\lib\pubnub_parse_ipv6_addr.c $(SOCKET_POLLER_C) ..\core\pbpal_ntf_callback_queue.c ..\core\pbpal_ntf_callback_admin.c ..\core\pbpal_ntf_callback_handle_timer_list.c ..\core\pubnub_callback_subscribe_loop.c
-CALLBACK_INTF_OBJFILES=pubnub_ntf_callback_windows.obj pubnub_get_native_socket.obj pubnub_timer_list.obj pbpal_adns_sockets.obj pubnub_dns_codec.obj pubnub_dns_servers.obj pubnub_dns_system_servers.obj pubnub_parse_ipv4_addr.obj pubnub_parse_ipv6_addr.obj $(SOCKET_POLLER_OBJ) pbpal_ntf_callback_queue.obj pbpal_ntf_callback_admin.obj pbpal_ntf_callback_handle_timer_list.obj pubnub_callback_subscribe_loop.obj
+CALLBACK_INTF_SOURCEFILES=pubnub_ntf_callback_windows.c pubnub_get_native_socket.c ..\core\pubnub_timer_list.c ..\lib\sockets\pbpal_adns_sockets.c ..\lib\pubnub_dns_codec.c ..\core\pubnub_dns_servers.c ..\windows\pubnub_dns_system_servers.c ..\lib\pubnub_parse_ipv4_addr.c ..\lib\pubnub_parse_ipv6_addr.c $(SOCKET_POLLER_C) ..\core\pbpal_ntf_callback_queue.c ..\core\pbpal_ntf_callback_admin.c ..\core\pbpal_ntf_callback_handle_timer_list.c ..\core\pubnub_callback_subscribe_loop.c ..\core\pbauto_heartbeat_callback.c ..\windows\pbauto_heartbeat_init_windows.c ..\windows\pb_sleep_ms.c
+CALLBACK_INTF_OBJFILES=pubnub_ntf_callback_windows.obj pubnub_get_native_socket.obj pubnub_timer_list.obj pbpal_adns_sockets.obj pubnub_dns_codec.obj pubnub_dns_servers.obj pubnub_dns_system_servers.obj pubnub_parse_ipv4_addr.obj pubnub_parse_ipv6_addr.obj $(SOCKET_POLLER_OBJ) pbpal_ntf_callback_queue.obj pbpal_ntf_callback_admin.obj pbpal_ntf_callback_handle_timer_list.obj pubnub_callback_subscribe_loop.obj pbauto_heartbeat_callback.obj pbauto_heartbeat_init_windows.obj pb_sleep_ms.obj
 
 pubnub_callback.lib : $(SOURCEFILES) $(PROXY_INTF_SOURCEFILES) $(CALLBACK_INTF_SOURCEFILES)
 	$(CC) -c $(CFLAGS) -DPUBNUB_CALLBACK_API $(INCLUDES) $(SOURCEFILES) $(PROXY_INTF_SOURCEFILES) $(CALLBACK_INTF_SOURCEFILES)
