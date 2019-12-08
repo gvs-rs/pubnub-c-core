@@ -168,7 +168,8 @@ void pubnub_qt::update_channels_and_ch_groups(QString const& channel,
 void pubnub_qt::auto_heartbeatTimeout()
 {
     KEEP_THREAD_SAFE();
-    QList<QString> msg = get_all();
+    /* Discharge reply buffer */
+    get_all();
     if (d_channels.empty() && d_channel_groups.empty()) {
         d_auto_heartbeatTimer->stop();
         return;
