@@ -126,7 +126,7 @@ static void heartbeat_thump(pubnub_t* pb, pubnub_t* heartbeat_pb)
     pubnub_mutex_unlock(heartbeat_pb->monitor);
 
     if (keys_changed) {
-        /** Used in sync environment while for callback it's an empty macro */ 
+        /** Used in sync environment while for callback it's an empty macro */
         add_heartbeat_in_progress(pb->thumperIndex);
         pubnub_mutex_unlock(pb->monitor);
         pubnub_cancel(heartbeat_pb);
@@ -151,7 +151,7 @@ static void heartbeat_thump(pubnub_t* pb, pubnub_t* heartbeat_pb)
                              res,
                              pubnub_res_2_string(res));
         }
-        /** Used in sync environment while for callback it's an empty macro */ 
+        /** Used in sync environment while for callback it's an empty macro */
         add_heartbeat_in_progress(pb->thumperIndex);
     }
     pubnub_mutex_unlock(pb->monitor);
@@ -245,7 +245,7 @@ static void handle_heartbeats_in_progress(void)
     enum pubnub_res result;
     struct pubnub_heartbeat_data* heartbeat_data = m_watcher.heartbeat_data;
     unsigned* heartbeat_indexes = m_watcher.heartbeat_in_progress_index_array;
-    
+
     pubnub_mutex_lock(m_watcher.mutw);
     for (i = 0; i < m_watcher.heartbeats_in_progress;) {
         pubnub_t* heartbeat_pb = heartbeat_data[heartbeat_indexes[i]].heartbeat_pb;
@@ -333,7 +333,7 @@ pubnub_watcher_t pbauto_heartbeat_watcher_thread(void* arg)
         if (stop_thread) {
             break;
         }
-        /** Used in sync environment while in callback it is an empty macro */ 
+        /** Used in sync environment while in callback it is an empty macro */
         handle_heartbeats_in_progress();
         pb_sleep_ms(1);
 #if !defined(_WIN32)
